@@ -1,0 +1,12 @@
+YOLO POSE Y TRACKING -> ultralytics
+	- Descargar codigo (no simplemente hacer un pip install ultralytics, sino descargar los archivos 
+		para poder modificarlos a mi gusto).
+	- Intentar entender como funciona el tracking en general, o almenos como poder cambiar las ids.
+	- Intentar añadir algun parametro para que el tracking solo lo haga dentro de cierta mascara.
+		Esta mascara sera creada en el primer frame a partir de los puntos para la homografia.
+	
+Con esto podremos conectar los siguientes modulos:
+
+- Segmentacion -> Deteccion -> Tracking -> Homografia
+
+El siguiente paso seria tracking de la pelota y deteccion si ha entrado o no 
