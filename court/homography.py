@@ -47,7 +47,7 @@ class Homography:
         
     def compute_homography(self):
         cc = CoordinateStore()
-        cv2.namedWindow('image')
+        cv2.namedWindow('image', cv2.WINDOW_NORMAL)
         param = [0, self.scene, self.topview]
 
         cv2.setMouseCallback('image',cc.select_point, param)

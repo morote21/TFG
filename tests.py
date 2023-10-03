@@ -1,14 +1,13 @@
-import cv2
+# from ultralytics import YOLO
 
-print('Insert video path:')
-video_path = input()
+# model = YOLO("./runs/detect/train/weights/best.pt")
 
-video = cv2.VideoCapture(video_path)
+# results = model.track(source="/home/morote/Desktop/input_tfg/nba2k_test.mp4", show=True, conf=0.5)
 
-ret, frame = video.read()
+import pickle
+import numpy as np
 
-cv2.imshow('first frame', frame)
-while(1):
-    k = cv2.waitKey(20) & 0xFF
-    if k == 27:
-        break
+#file = open("/home/morote/Desktop/dataset/examples/0000000.npy", "rb")
+
+l = np.load("/home/morote/Desktop/dataset/examples/0000000.npy", allow_pickle=True)
+print(l)

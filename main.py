@@ -4,13 +4,16 @@ import copy
 from court.homography import CoordinateStore, Homography
 from ultralytics import YOLO
 
+VIDEO_PATH = "/home/morote/Desktop/input_tfg/nba2k_test.mp4"
+TOPVIEW_PATH = "/home/morote/Desktop/input_tfg/synthetic_court2.jpg"
+
 def main():
 
-    print('Insert video path:')
-    video_path = input()
+    #print('Insert video path:')
+    video_path = VIDEO_PATH
 
-    print('Insert top view image path:')
-    topview_path = input()
+    #print("/home/morote/Desktop/input_tfg/synthetic_court2.jpg")
+    topview_path = TOPVIEW_PATH
     topview_image = cv2.imread(topview_path)
 
     print('Select 6 points in the same order on both images:')
@@ -27,8 +30,8 @@ def main():
 
     h.print_homography()
     
-    model = YOLO('./tracking/yolov8m-pose.pt')
-
+    model = YOLO("./runs/detect/train/weights/best.pt")
+    #model = YOLO("yolov8x.pt")
 
     while True:
         ret, frame = video.read()
