@@ -1,7 +1,8 @@
 import cv2
 import sys
 import copy
-from court.homography import CoordinateStore, Homography
+from input_data.coordinate_store import CoordinateStore
+from topview_transform.topview import Topview
 from ultralytics import YOLO
 
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/nba2k_test.mp4"
@@ -19,16 +20,45 @@ def main():
     print('Select 6 points in the same order on both images:')
     video = cv2.VideoCapture(video_path)
 
-    # Read first frame for homography computation
+    # READ FIRST FRAME FOR TOPVIEW TRANSFORM COMPUTATION
     ret, frame = video.read()
 
     if not ret:
         print("Error reading video frame.\n")
 
-    h = Homography(scene_image=frame, topview_image=topview_image)
-    h.compute_homography()
+    # GET POINT CORRELATIONS BETWEEN SCENE AND TOPVIEW
+    scene_copy = copy.deepcopy(frame)
+    topview_copy = copy.deepcopy(topview_image)
 
-    h.print_homography()
+    cc = CoordinateStore()
+    cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+    param = [0, scene_copy, topview_copy]
+    cv2.setMouseCallback('image', cc.select_point, param)
+
+    # SELECT 6 POINTS IN EACH IMAGE IN THE SAME ORDER
+    while (1):
+
+        if (param[0] == 0):
+            cv2.imshow('image', scene_copy)
+        elif (param[0] == 1):
+            cv2.imshow('image', topview_copy)
+        else:
+            cv2.destroyAllWindows()
+            break
+
+        k = cv2.waitKey(20) & 0xFF
+        if k == 27:
+            break
+
+    cv2.destroyAllWindows()
+
+    scene_points = cc.get_points_scene()
+    topview_points = cc.get_points_topview()
+
+    tw_transform = Topview()
+    tw_transform.compute_topview(scene_points, topview_points)
+
+    tw_transform.print_homography()
     
     model = YOLO("./runs/detect/train/weights/best.pt")
     #model = YOLO("yolov8x.pt")
@@ -49,7 +79,7 @@ def main():
             floor_point = ((box[0] + box[2]) // 2, box[3])
             cv2.circle(frame, floor_point, 3, (0, 255, 0), 2)
 
-            floor_point_transformed = h.transform_point(floor_point)
+            floor_point_transformed = tw_transform.transform_point(floor_point)
             cv2.circle(topview_image_copy, (int(floor_point_transformed[0]), int(floor_point_transformed[1])), 3, (0, 255, 0), 2)
 
             cv2.imshow("frame", frame)
