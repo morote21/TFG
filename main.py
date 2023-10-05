@@ -1,6 +1,7 @@
 import cv2
 import sys
 import copy
+import numpy as np
 from input_data.coordinate_store import CoordinateStore
 from topview_transform.topview import Topview
 from ultralytics import YOLO
@@ -29,13 +30,15 @@ def main():
     # GET POINT CORRELATIONS BETWEEN SCENE AND TOPVIEW
     scene_copy = copy.deepcopy(frame)
     topview_copy = copy.deepcopy(topview_image)
+    mask = copy.deepcopy(frame)
+    mask[:] = 0
 
     cc = CoordinateStore()
     cv2.namedWindow('image', cv2.WINDOW_NORMAL)
     param = [0, scene_copy, topview_copy]
     cv2.setMouseCallback('image', cc.select_point, param)
 
-    # SELECT 6 POINTS IN EACH IMAGE IN THE SAME ORDER
+    # SELECT 4 VECTORS IN EACH IMAGE IN THE SAME ORDER
     while (1):
 
         if (param[0] == 0):
@@ -59,7 +62,13 @@ def main():
     tw_transform.compute_topview(scene_points, topview_points)
 
     tw_transform.print_homography()
-    
+
+    pts = np.array(tw_transform.get_scene_intersections(), np.int32)
+    pts = pts.reshape((-1, 1, 2))
+    cv2.polylines(mask, [pts], True, (255, 255, 255))
+    cv2.imshow("mask", mask)
+    k = cv2.waitKey(20) & 0xFF
+
     model = YOLO("./runs/detect/train/weights/best.pt")
     #model = YOLO("yolov8x.pt")
 
