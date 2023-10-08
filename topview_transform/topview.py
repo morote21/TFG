@@ -4,6 +4,14 @@ import numpy as np
 
 # https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection Given two points on each line intersection
 def intersection_point(p1, p2, p3, p4):
+    # Normalize input
+    points = np.array([p1, p2, p3, p4])
+    min_val = np.min(points)
+    max_val = np.max(points)
+    points = (points - min_val) / (max_val - min_val)
+
+    p1, p2, p3, p4 = points
+
     denom = ((p1[0] - p2[0]) * (p3[1] - p4[1])) - ((p1[1] - p2[1]) * (p3[0] - p4[0]))
 
     # If denom is zero, lines are parallel: no intersection. Return None.
@@ -15,6 +23,10 @@ def intersection_point(p1, p2, p3, p4):
 
     p_y = ((p1[0] * p2[1] - p1[1] * p2[0]) * (p3[1] - p4[1]) - (p1[1] - p2[1]) * (
             p3[0] * p4[1] - p3[1] * p4[0])) / denom
+
+    # Revert normalization
+    p_x = p_x * (max_val - min_val) + min_val
+    p_y = p_y * (max_val - min_val) + min_val
 
     return np.array([p_x, p_y])
 

@@ -37,13 +37,3 @@ class CoordinateStore:
     def get_points_topview(self):
         return self.points_dst
 
-
-    """def track_point(self, event, x, y, flags, param):
-        if event == cv2.EVENT_LBUTTONDOWN:
-            print(f"Before homography: ({x}, {y})")
-            h = param[0]
-            p = np.array([x, y, 1])
-            p = np.matmul(h, p)
-            q = np.array([p[0]/p[2], p[1]/p[2]])
-            print(f"After homography: ({q[0]}, {q[1]})")
-            cv2.circle(image_dst,(int(q[0]),int(q[1])),3,(255,0,0),2)"""
