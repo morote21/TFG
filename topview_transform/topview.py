@@ -68,6 +68,8 @@ class Topview:
         self.scene_intersections = np.zeros(shape=(4, 2))
         self.topview_intersections = np.zeros(shape=(4, 2))
 
+        self.players_positions = None
+
     def compute_topview(self, scene_points, topview_points):
         # The topview transformation is done using homography matrix
 

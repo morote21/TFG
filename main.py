@@ -6,16 +6,16 @@ from input_data.coordinate_store import CoordinateStore
 from topview_transform.topview import Topview
 from ultralytics import YOLO
 from court_segmentation import court_segmentation as cs
+from person_detection.person_detection import Tracker
 
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/nba2k_test.mp4"
 TOPVIEW_PATH = "/home/morote/Desktop/input_tfg/synthetic_court2.jpg"
 
+
 def main():
 
-    #print('Insert video path:')
     video_path = VIDEO_PATH
 
-    #print("/home/morote/Desktop/input_tfg/synthetic_court2.jpg")
     topview_path = TOPVIEW_PATH
     topview_image = cv2.imread(topview_path)
 
@@ -68,32 +68,30 @@ def main():
     # Definitive mask for knowing if someone is inside the court
     segmented_court = segmented_court > 0
 
-    model = YOLO("./runs/detect/train/weights/best.pt")
-    #model = YOLO("yolov8x.pt")
+    #model = YOLO("./runs/detect/train/weights/best.pt")
+
+    player_tracker = Tracker()
 
     while True:
         ret, frame = video.read()
         if not ret:
             break
 
-        results = model.track(source=frame, show=False, save=False, persist=True, tracker="bytetrack.yaml")
-        boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
-        ids = results[0].boxes.id.cpu().numpy().astype(int)
+        boxes, ids = player_tracker.track_players(frame=frame)
+
+        frame = player_tracker.draw_bb_player(frame, boxes, ids, segmented_court)
 
         topview_image_copy = topview_image.copy()
-        for box, id in zip(boxes, ids):
-            floor_point = ((box[0] + box[2]) // 2, box[3])
-            if segmented_court[floor_point[1]][floor_point[0]]: # al ser coordenadas (x, y) van al reves de (row, col)
-                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
-                cv2.putText(frame, str(id), (box[0], box[1]-10), cv2.FONT_HERSHEY_PLAIN, 0.9, (0, 255, 0), 2)
-                cv2.circle(frame, floor_point, 3, (0, 255, 0), 2)
 
-                floor_point_transformed = tw_transform.transform_point(floor_point)
-                cv2.circle(topview_image_copy, (int(floor_point_transformed[0]), int(floor_point_transformed[1])), 3, (0, 255, 0), 2)
 
-                cv2.imshow("frame", frame)
-                cv2.imshow("topview", topview_image_copy)
-                key = cv2.waitKey(1)
+
+        # Descomentar para hacer bien el topview
+        # floor_point_transformed = tw_transform.transform_point(floor_point)
+        # cv2.circle(topview_image_copy, (int(floor_point_transformed[0]), int(floor_point_transformed[1])), 3, (0, 255, 0), 2)
+
+        cv2.imshow("frame", frame)
+        # cv2.imshow("topview", topview_image_copy)
+        key = cv2.waitKey(1)
 
     video.release()
     cv2.destroyAllWindows()
