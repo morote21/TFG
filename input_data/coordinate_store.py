@@ -37,3 +37,20 @@ class CoordinateStore:
     def get_points_topview(self):
         return self.points_dst
 
+
+class RimCoordinates:
+    def __init__(self):
+        self.points = np.zeros(shape=(2,2))
+        self.array_filled = False
+
+    def select_rim_diameter(self,event,x,y,flags,param):
+        image_src = param[1]
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            self.points[0] = [x, y]
+        if event == cv2.EVENT_LBUTTONUP:
+            self.points[1] = [x, y]
+            self.array_filled = True
+
+    def get_rim_coordinates(self):
+        return self.points[0], self.points[1]

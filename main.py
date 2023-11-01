@@ -6,10 +6,14 @@ from input_data.coordinate_store import CoordinateStore
 from topview_transform.topview import Topview
 from ultralytics import YOLO
 from court_segmentation import court_segmentation as cs
-from person_detection.person_detection import Tracker
+from person_detection.person_detection import Tracker, draw_bb_player
+from player_recognition.team_association import Teams
 
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/nba2k_test.mp4"
 TOPVIEW_PATH = "/home/morote/Desktop/input_tfg/synthetic_court2.jpg"
+TEAM_1_PLAYER = "/home/morote/Pictures/team1_black.png"
+TEAM_2_PLAYER = "/home/morote/Pictures/team2_white.png"
+
 
 
 def main():
@@ -18,6 +22,12 @@ def main():
 
     topview_path = TOPVIEW_PATH
     topview_image = cv2.imread(topview_path)
+
+    team1_image = cv2.imread(TEAM_1_PLAYER)
+    team2_image = cv2.imread(TEAM_2_PLAYER)
+
+    # CREATE TEAMS OBJECT, WHICH CONTAINS DATA ABOUT BOTH TEAMS
+    teams = Teams(team1_image, team2_image, 6)
 
     print('Select 6 points in the same order on both images:')
     video = cv2.VideoCapture(video_path)
@@ -78,19 +88,24 @@ def main():
             break
 
         boxes, ids = player_tracker.track_players(frame=frame)
-
-        frame = player_tracker.draw_bb_player(frame, boxes, ids, segmented_court)
+        for box, identity in zip(boxes, ids):
+            crop = frame[box[1]:box[3], box[0]:box[2]]
+            association = teams.associate(crop)
+            frame = draw_bb_player(frame, box, identity, segmented_court, association)
 
         topview_image_copy = topview_image.copy()
 
-
-
+        for box in boxes:
+            floor_point = ((box[0] + box[2]) / 2, box[3])
+            floor_point_transformed = tw_transform.transform_point(floor_point)
+            cv2.circle(topview_image_copy, (int(floor_point_transformed[0]), int(floor_point_transformed[1])), 3,
+                       (0, 255, 0), 2)
         # Descomentar para hacer bien el topview
         # floor_point_transformed = tw_transform.transform_point(floor_point)
         # cv2.circle(topview_image_copy, (int(floor_point_transformed[0]), int(floor_point_transformed[1])), 3, (0, 255, 0), 2)
 
         cv2.imshow("frame", frame)
-        # cv2.imshow("topview", topview_image_copy)
+        cv2.imshow("topview", topview_image_copy)
         key = cv2.waitKey(1)
 
     video.release()
