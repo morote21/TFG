@@ -1,0 +1,4 @@
+problemas:
+
+- si el tamaño de los videos no es el mismo (almenos en anchura), es posible que el marker para la mascara se vaya fuera de 
+	imagen, y por tanto de error out of bounds.

@@ -1,0 +1,10 @@
+MADE-SHOT DETECTION:
+- una vez tenemos el ring detection, crear dos cajas:
+	- una encima del aro
+	- otra debajo del aro
+	
+	la idea es que para que se considere canasta, deberá entrar en la primera caja, y en un cierto número de frames
+	entrar en la siguiente caja
+	
+	se puede combinar con algun otro método de deteccion de canasta encestada para ser mas robusto (el resto de métodos 
+	deben tener un porcentaje de acierto similar, o sino entonces ponderar los resultados)

@@ -1,0 +1,19 @@
+- ball detection
+- made-shot detection
+- shot detection
+
+- crear minidataset para el made-shot detection
+
+- arreglar team association, ya que hay veces que las asignaciones no son correctas, sobretodo con oclusiones:
+	- añadir contexto, por ejemplo, teniendo en cuenta si al asociarlo al equipo contrario, el otro equipo ya tenia 
+		los jugadores completos, y todos tienen mas "score" a la hora de asociar que el jugador tratado
+		
+- tambien arreglar donde se encuentran las asociaciones a un equipo, ya que esta informacion sera necesaria para 
+	a que equipo se asigna una accion
+
+- intentar entrenar la yolo-cls con el dataset de imagenes creado a partir del spacejam dataset
+- ir grabando algunos videos de vez en cuando en las pistas con la gopro, para crear el dataset de:
+	- shot
+	- pass
+	- ball
+	- (pensar en alguno mas, si hace falta, ya que se crea el dataset)
