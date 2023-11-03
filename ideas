@@ -8,3 +8,34 @@ MADE-SHOT DETECTION:
 	
 	se puede combinar con algun otro método de deteccion de canasta encestada para ser mas robusto (el resto de métodos 
 	deben tener un porcentaje de acierto similar, o sino entonces ponderar los resultados)
+
+
+
+
+import cv2
+import streamlit as sl
+from PIL import Image
+import tempfile
+import numpy as np
+from domain_layer.domain_controller import DomainController
+from streamlit_image_coordinates import streamlit_image_coordinates
+
+sl.title("Statistics Generator")
+sl.subheader("This app is for generating the statistics from a video, which will be shown in the Statistics Displayer")
+
+video = sl.file_uploader("Upload file:")
+if video is not None:
+    tfile = tempfile.NamedTemporaryFile(delete=False)
+    tfile.write(video.read())
+    vf = cv2.VideoCapture(tfile.name)
+
+    top_view_image_sl = sl.file_uploader("Upload minimap image:")
+    if top_view_image_sl is not None:
+        top_view_image = Image.open(top_view_image_sl)
+
+        sl.write("Instructions:")
+        sl.write("1. Click on the image to get pixel coordinates of the first component of the line.")
+        sl.write("2. Release the mouse button to get pixel coordinates of the second component of the line.")
+
+        sl.image(top_view_image, caption="Topview", use_column_width=True)
+        img_array = np.array(top_view_image)
