@@ -9,7 +9,8 @@ from court_segmentation import court_segmentation as cs
 from person_detection.person_detection import Tracker, draw_bb_player
 from player_recognition.team_association import Teams
 
-VIDEO_PATH = "/home/morote/Desktop/input_tfg/nba2k_test.mp4"
+VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
+#VIDEO_PATH = "/home/morote/Desktop/input_tfg/nba2k_test.mp4"
 TOPVIEW_PATH = "/home/morote/Desktop/input_tfg/synthetic_court2.jpg"
 TEAM_1_PLAYER = "/home/morote/Pictures/team1_black.png"
 TEAM_2_PLAYER = "/home/morote/Pictures/team2_white.png"
@@ -87,11 +88,12 @@ def main():
         if not ret:
             break
 
-        boxes, ids = player_tracker.track_players(frame=frame)
-        for box, identity in zip(boxes, ids):
+        boxes, ids, classes = player_tracker.track_players(frame=frame)
+        for box, identity, cls in zip(boxes, ids, classes):
             crop = frame[box[1]:box[3], box[0]:box[2]]
             association = teams.associate(crop)
             frame = draw_bb_player(frame, box, identity, segmented_court, association)
+            print(cls)
 
         topview_image_copy = topview_image.copy()
 

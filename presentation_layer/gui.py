@@ -8,6 +8,14 @@ from PIL import Image
 os.environ.pop("QT_QPA_PLATFORM_PLUGIN_PATH")
 
 
+class CourtWindow(QWidget):
+    def __init__(self, path):
+        super().__init__()
+
+        
+
+
+
 class TopviewWindow(QWidget):
     def __init__(self, path):
         super().__init__()

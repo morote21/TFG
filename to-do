@@ -17,3 +17,7 @@
 	- pass
 	- ball
 	- (pensar en alguno mas, si hace falta, ya que se crea el dataset)
+	
+- antes de todo, probar a entrenar yolov8m-cls ajustando el dataset de imagenes creado a partir del spacejam dataset,
+	(de manera que queden como es indicado aqui: https://docs.ultralytics.com/datasets/classify/#dataset-format),
+	y ver que tal dan los resultados
