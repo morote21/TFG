@@ -1,4 +1,4 @@
-from domain_layer.player_recognition.team_association import Teams
+from domainLayer.playerRecognition.teamAssociation import Teams
 import cv2
 
 

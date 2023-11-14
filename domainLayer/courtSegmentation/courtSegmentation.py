@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from topview_transform import topview as tv
+from topviewTransform import topview as tv
 
 
 def imreconstruct(marker, mask):
@@ -17,8 +17,8 @@ def imreconstruct(marker, mask):
         marker = expanded
 
 
-def court_segmentation(pts, img_shape):
-    p1 = pts[0]
+def courtSegmentation(pts, imgShape):
+    """p1 = pts[0]
     p2 = pts[2]
     p3 = pts[1]
     p4 = pts[3]
@@ -33,6 +33,9 @@ def court_segmentation(pts, img_shape):
     pts = pts.reshape((-1, 1, 2))
     cv2.polylines(mask, [pts], True, (0, 0, 0), 5)
 
-    segmented_court = imreconstruct(marker, mask)
+    segmented_court = imreconstruct(marker, mask)"""
 
-    return segmented_court
+    segmentedCourt = np.zeros(imgShape, dtype=np.uint8)
+    segmentedCourt = cv2.fillConvexPoly(segmentedCourt, pts, 255)
+
+    return segmentedCourt

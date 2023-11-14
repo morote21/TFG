@@ -12,7 +12,7 @@ import numpy as np
 # l = np.load("/home/morote/Desktop/dataset/examples/0000000.npy", allow_pickle=True)
 # print(l)
 
-from domain_layer.input_data.coordinate_store import RimCoordinates
+from domainLayer.input_data.coordinate_store import RimCoordinates
 import cv2
 import copy
 

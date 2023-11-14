@@ -28,10 +28,9 @@ def draw_bb_player(frame, box, identity, segmented_court, association):
 class Tracker:
 
     def __init__(self):
-        self.model = YOLO("./domain_layer/person_detection/yolov8x.pt")
-        # self.model = YOLO("./runs/detect/train2/weights/best.pt")
+        self.model = YOLO("./models/yolov8m.pt")
 
-    def track_players(self, frame):
+    def trackPlayers(self, frame):
         results = self.model.track(source=frame, show=False, save=False, persist=True, tracker="bytetrack.yaml", conf=0.3)
         if results and len(results) > 0 and results[0].boxes is not None and results[0].boxes.id is not None:
             boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
