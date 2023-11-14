@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import cv2
 
 
-def draw_bb_player(frame, box, identity, segmented_court, association):
+def drawBoundingBoxPlayer(frame, box, identity, segmented_court, association):
 
     floor_point = ((box[0] + box[2]) // 2, box[3])
     """
@@ -42,3 +42,7 @@ class Tracker:
         # Aqui falta filtrar con el segmented court
 
         return boxes, ids, classes
+
+    def getClassName(self, id):
+        id = int(id.item())             # Convert tensor to int
+        return self.model.names[id]
