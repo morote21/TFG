@@ -7,6 +7,7 @@ from ultralytics import YOLO
 from courtSegmentation import courtSegmentation as cs
 from personDetection.personDetection import Tracker, drawBoundingBoxPlayer
 from playerRecognition.teamAssociation import Teams
+from actionRecognition.actionRecognition import ActionRecognition
 import utils
 
 # VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
@@ -49,6 +50,7 @@ def main():
     segmentedCourt = segmentedCourt > 0                                 # MASK TO FILTER PEOPLE INSIDE THE COURT
 
     playerTracker = Tracker()
+    actionRecognizer = ActionRecognition()
 
     while True:
         ret, frame = video.read()
