@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import cv2
 
 
-def drawBoundingBoxPlayer(frame, box, identity, segmented_court, association):
+def drawBoundingBoxPlayer(frame, box, identity, segmented_court, association, action):
 
     floor_point = ((box[0] + box[2]) // 2, box[3])
     """
@@ -21,6 +21,8 @@ def drawBoundingBoxPlayer(frame, box, identity, segmented_court, association):
     cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_PLAIN, 0.9, (0, 255, 0), 2)
     cv2.circle(frame, floor_point, 3, (0, 255, 0), 2)
 
+    #print action after identity
+    cv2.putText(frame, str(action), (box[0], box[1] - 25), cv2.FONT_HERSHEY_PLAIN, 0.9, (0, 255, 0), 2)
 
     return frame
 

@@ -2,6 +2,13 @@ import cv2
 import numpy as np
 import torch
 
+def resizeFrame(frame, height=1080):
+    aspect_ratio = frame.shape[1] / frame.shape[0]  # width / height
+    width = int(height * aspect_ratio)
+    resized_frame = cv2.resize(frame, (width, height))
+    return resized_frame
+
+
 def getBorders(image):
     """
     Gets the borders of the court and the topview image

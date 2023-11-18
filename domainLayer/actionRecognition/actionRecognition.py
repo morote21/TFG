@@ -42,8 +42,30 @@ def cropAction(clip, cropWindow, player=0):
     
     return video
 
-def inferenceBatch(batch):
-    batch = batch.permute(0, 4, 1, 2, 3)    # (batch, time, height, width, channels) -> (batch, channels, time, height, width)
+def cropPlayer(frame, boundingbox):
+    x = int(boundingbox[0])
+    y = int(boundingbox[1])
+    w = int(boundingbox[2]) - int(boundingbox[0])
+    h = int(boundingbox[3]) - int(boundingbox[1])
+
+    croppedFrame = frame[y:y+h, x:x+w]
+
+    try:
+        resizedFrame = cv2.resize(croppedFrame, dsize=(int(128), int(176)), interpolation=cv2.INTER_NEAREST)
+    
+    except:
+        resizedFrame = np.zeros((int(176), int(128), int(3)), dtype=np.uint8) 
+
+    assert resizedFrame.shape == (176, 128, 3)  # Check if size is correct
+    
+    return resizedFrame
+
+
+def inferenceShape(batch):
+    batch = batch.permute(3, 0, 1, 2)    # (time, height, width, channels) -> (channels, time, height, width)
+    # add 1 dimension to the beginning of the tensor of size 1
+    batch = batch.unsqueeze(0)
+    print(batch.shape)
     return batch
 
 
@@ -58,5 +80,15 @@ class ActionRecognition:
         if torch.cuda.is_available():
             self.model = self.model.to(device)
         
+        self.model.eval()
+        
+        self.labels = {0 : "block", 1 : "pass", 2 : "run", 3 : "dribble", 4 : "shoot", 5 : "ball in hand", 6 : "defense", 7 : "pick" , 8 : "no_action" , 9 : "walk" , 10 : "discard"}
     
+
+    def inference(self, input):
+        outputs = self.model(input)
+        _, pred = torch.max(outputs, 1)
+        return pred.cpu().numpy()
     
+    def getLabel(self, label):
+        return self.labels[label]
