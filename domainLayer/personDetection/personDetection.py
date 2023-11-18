@@ -22,7 +22,7 @@ def drawBoundingBoxPlayer(frame, box, identity, segmented_court, association, ac
     cv2.circle(frame, floor_point, 3, (0, 255, 0), 2)
 
     #print action after identity
-    cv2.putText(frame, str(action), (box[0], box[1] - 25), cv2.FONT_HERSHEY_PLAIN, 0.9, (0, 255, 0), 2)
+    cv2.putText(frame, str(action), (box[0], box[1] - 25), cv2.FONT_HERSHEY_PLAIN, 0.9, (0, 0, 0), 2)
 
     return frame
 

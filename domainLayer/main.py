@@ -12,7 +12,7 @@ import actionRecognition.actionRecognition as ar
 import utils
 
 # VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
-VIDEO_PATH = "/home/morote/Desktop/input_tfg/nba2k_test.mp4"
+VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
 TOPVIEW_PATH = "/home/morote/Desktop/input_tfg/synthetic_court2.jpg"
 TEAM_1_PLAYER = "/home/morote/Pictures/team1_black.png"
 TEAM_2_PLAYER = "/home/morote/Pictures/team2_white.png"
