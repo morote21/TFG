@@ -43,10 +43,10 @@ def cropAction(clip, cropWindow, player=0):
     return video
 
 def cropPlayer(frame, boundingbox):
-    x = int(boundingbox[0])
-    y = int(boundingbox[1])
-    w = int(boundingbox[2]) - int(boundingbox[0])
-    h = int(boundingbox[3]) - int(boundingbox[1])
+    x = max(int(boundingbox[0]) - 10, 0)
+    y = max(int(boundingbox[1]) - 10, 0)
+    w = int(boundingbox[2]) - int(boundingbox[0]) + 20
+    h = int(boundingbox[3]) - int(boundingbox[1]) + 20
 
     croppedFrame = frame[y:y+h, x:x+w]
 

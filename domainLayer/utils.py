@@ -55,3 +55,12 @@ def load_weights(model, modelPath, baseModelName, startEpoch, lr):
     model.load_state_dict(modelDict)
 
     return model
+
+
+def getMostCommonElement(array):
+    """
+    Gets the most common element in an array
+    :param array: array to get most common element from
+    :return: most common element
+    """
+    return max(set(array), key=array.count)
