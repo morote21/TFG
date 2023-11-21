@@ -26,7 +26,6 @@ def drawBoundingBoxPlayer(frame, box, identity, segmented_court, association, ac
 
     return frame
 
-
 class Tracker:
 
     def __init__(self):

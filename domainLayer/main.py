@@ -8,8 +8,10 @@ from ultralytics import YOLO
 from courtSegmentation import courtSegmentation as cs
 from personDetection.personDetection import Tracker, drawBoundingBoxPlayer
 from playerRecognition.teamAssociation import Teams
+from actionAnalysis.actionAnalysis import ActionAnalysis
 import actionRecognition.actionRecognition as ar
 import utils
+import matplotlib.pyplot as plt
 
 # VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
@@ -76,6 +78,8 @@ def main():
 
     topviewImg = cv2.imread(TOPVIEW_PATH)
 
+    actionAnalyzer = ActionAnalysis(topviewImage=topviewImg)
+
     team1Img = cv2.imread(TEAM_1_PLAYER)
     team2Img = cv2.imread(TEAM_2_PLAYER)
 
@@ -107,10 +111,7 @@ def main():
     playerTracker = Tracker()                                           # INITIALIZE TRACKER OBJECT            
     actionRecognizer = ar.ActionRecognition()                           # INITIALIZE ACTION RECOGNITION OBJECT
 
-    playersFrames = {}                                                  # DICTIONARY TO STORE THE LAST 16 FRAMES OF EACH PLAYER
-    playersPartialClassifications = {}                                  # DICTIONARY TO STORE THE PARTIAL CLASSIFICATIONS OF EACH PLAYER
-    playersFinalClassifications = {}                                    # DICTIONARY TO STORE THE FINAL CLASSIFICATION OF EACH PLAYER
-
+    prevActionsClassifications = {}                                     # DICTIONARY TO STORE THE PREVIOUS CLASSIFICATIONS OF EACH PLAYER
 
     while True:
         ret, frame = video.read()
@@ -121,61 +122,23 @@ def main():
         frame = utils.resizeFrame(frame, height=1080)                   # RESIZE FRAME TO 1080p
         boxes, ids, classes = playerTracker.trackPlayers(frame=frame)   # TRACK PLAYERS IN FRAME
 
-        # CHECK IF THERE ARE NEW PLAYERS OR PLAYERS THAT HAVE LEFT THE COURT OR NOT TRACKED DUE TO OCCLUSION
-        if len(ids) != len(playersFrames.keys()):
-            if len(playersFrames.keys()) < len(ids):
-                for iden in ids:
-                    if iden not in list(playersFrames.keys()):
-                        playersFrames[iden] = []
-                        playersPartialClassifications[iden] = []
-                        playersFinalClassifications[iden] = "undefined"
-            
-            else:
-                for iden in list(playersFrames.keys()):
-                    if iden not in ids:
-                        playersFrames.pop(iden)
-                        playersPartialClassifications.pop(iden)
-                        playersFinalClassifications.pop(iden)
-
-        # DRAW BOUNDING BOXES, ASSOCIATE PLAYERS WITH TEAMS AND PERFORM ACTION RECOGNITION FOR EACH PLAYER
-        for box, identity, cls in zip(boxes, ids, classes):
-            
-            hasAction = False
+        actions = actionRecognizer.inference(frame, boxes, ids, classes)          # PERFORM ACTION RECOGNITION
+        
+        for box, identity, cls in zip(boxes, ids, classes):         # DRAW BOUNDING BOXES WITH ID AND ACTION
             if playerTracker.getClassName(cls) == "person":
-
                 crop = frame[box[1]:box[3], box[0]:box[2]]              # CROP PLAYER FROM FRAME FOR TEAM ASSOCIATION
-                cropAndResize = ar.cropPlayer(frame, box)               # CROP PLAYER FROM FRAME FOR ACTION RECOGNITION
                 association = teams.associate(crop)                     # ASSOCIATE PLAYER WITH A TEAM
-                
-                for ide, frames in playersFrames.items():               # TRACK HOW MANY FRAMES HAS EACH PLAYER
-                    print(f"Player {ide} has {len(frames)} frames")
+                frame = drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, actions[identity]) 
 
-                # QUEUE OF 16 FRAMES
-                playersFrames[identity].append(cropAndResize)
-                if len(playersFrames[identity]) > 16:
-                     playersFrames[identity].pop(0)
+                floorPoint = ((box[0] + box[2]) / 2, box[3])
+                floorPointTransformed = twTransform.transformPoint(floorPoint)
+                actionAnalyzer.setStep((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)
 
-                # INFERENCE
-                if len(playersFrames[identity]) == 16:
-                    inputFrames = ar.inferenceShape(torch.Tensor(playersFrames[identity]))  # ADJUST SHAPE FOR INFERENCE
-                    inputFrames = inputFrames.to(device=device)                             # SEND TO GPU
+                if actions[identity] == "shoot" and prevActionsClassifications[identity] == "ball in hand":
+                    actionAnalyzer.shotDetected((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)
 
-                    with torch.no_grad():
-                        output = actionRecognizer.inference(inputFrames)                    # INFERENCE
-                        action = actionRecognizer.getLabel(output[0])                       # GET LABEL
-                        playersPartialClassifications[identity].append(action)                     # APPEND TO QUEUE OF CLASSIFICATIONS
-
-                        if len(playersPartialClassifications[identity]) > SIZE_OF_ACTION_QUEUE: 
-                            playersPartialClassifications[identity].pop(0)
-
-                        if len(playersPartialClassifications[identity]) == SIZE_OF_ACTION_QUEUE:   # QUEUE OF 5 CLASSIFICATIONS
-                            playersFinalClassifications[identity] = utils.getMostCommonElement(playersPartialClassifications[identity]) # GET MOST COMMON CLASSIFICATION
-                            #hasAction = True
-                        
-                # DRAW BOUNDING BOXES WITH ID AND ACTION
-                frame = drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, playersFinalClassifications[identity])
-
-
+        prevActionsClassifications = copy.deepcopy(actions)
+        
         topviewImageCpy = topviewImg.copy()
 
         # DRAW PLAYERS IN TOPVIEW
@@ -185,9 +148,12 @@ def main():
             cv2.circle(topviewImageCpy, (int(floorPointTransformed[0]), int(floorPointTransformed[1])), 3,
                        (0, 255, 0), 2)
 
+
         cv2.imshow("frame", frame)
         cv2.imshow("topview", topviewImageCpy)
         key = cv2.waitKey(1)
+        if key == 27:
+            break
 
     video.release()
     cv2.destroyAllWindows()

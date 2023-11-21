@@ -21,3 +21,23 @@
 - antes de todo, probar a entrenar yolov8m-cls ajustando el dataset de imagenes creado a partir del spacejam dataset,
 	(de manera que queden como es indicado aqui: https://docs.ultralytics.com/datasets/classify/#dataset-format),
 	y ver que tal dan los resultados
+	
+	
+opciones de mejora de inferencia:
+1- si en n clasificaciones seguidas dice que se ha realizado tal accion, entonces tomar como que se ha realizado esa accion
+	- pros: 
+		- mas robusto
+	- contras: 
+		- tarda n veces mas en hacer la inferencia
+	
+	posiblemente implementar con mayorias, de manera que si en las ultimas m inferencias (siendo m impar), la mayoria es una cierta clase, pues 
+	asignar esa clase
+	
+	
+opciones de mejora de velocidad de algoritmo:
+1- hacer inferencia cada k frames, no cada frame, con la cola de frames
+	- pros: 
+		- mas rapido
+		- posiblemente mas generalizado
+	- contras: 
+		- menos detallado

@@ -12,9 +12,11 @@ import torch
 import torch.nn as nn
 from torchvision import models
 from torchvision.models.video import R2Plus1D_18_Weights
-from domainLayer.utils import load_weights
+from domainLayer.utils import load_weights, getMostCommonElement
 
 MODEL_PATH = "/home/morote/Desktop/TFG/domainLayer/models/model_checkpoints/r2plus1d_augmented-3/r2plus1d_multiclass_12_0.0001.pt"
+SIZE_OF_ACTION_QUEUE = 7
+
 
 # SEGURAMENTE ESTE MAL, HACERLO A MI MANERA PERO RESPETANDO COMO SERIA LA ENTRADA DE LA RED
 def cropAction(clip, cropWindow, player=0):
@@ -71,24 +73,88 @@ def inferenceShape(batch):
 
 class ActionRecognition:
     def __init__(self):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = models.video.r2plus1d_18(weights=R2Plus1D_18_Weights.DEFAULT, progress=True)
         num_ftrs = self.model.fc.in_features
         self.model.fc = nn.Linear(num_ftrs, 10, bias=True)
         self.model = load_weights(self.model, "/home/morote/Desktop/TFG/domainLayer/models/model_checkpoints/r2plus1d_augmented-3",
                                   "r2plus1d_multiclass", 12, 0.0001)
         if torch.cuda.is_available():
-            self.model = self.model.to(device)
+            self.model = self.model.to(self.device)
         
         self.model.eval()
         
         self.labels = {0 : "block", 1 : "pass", 2 : "run", 3 : "dribble", 4 : "shoot", 5 : "ball in hand", 6 : "defense", 7 : "pick" , 8 : "no_action" , 9 : "walk" , 10 : "discard"}
-    
 
-    def inference(self, input):
-        outputs = self.model(input)
-        _, pred = torch.max(outputs, 1)
-        return pred.cpu().numpy()
+        self.playersFrames = {}                                                  # DICTIONARY TO STORE THE LAST 16 FRAMES OF EACH PLAYER
+        self.playersFrameFlag = {}                                               # DICTIONARY TO STORE WHEN WE ARE ABLE TO STORE A FRAME FOR A CERTAIN PLAYER
+        self.playersPartialClassifications = {}                                  # DICTIONARY TO STORE THE PARTIAL CLASSIFICATIONS OF EACH PLAYER
+        self.playersFinalClassifications = {}                                    # DICTIONARY TO STORE THE FINAL CLASSIFICATION OF EACH PLAYER
+
+
+    def inference(self, frame, boxes, ids, classes):
+        # CHECK IF THERE ARE NEW PLAYERS OR PLAYERS THAT HAVE LEFT THE COURT OR NOT TRACKED DUE TO OCCLUSION
+        if len(ids) != len(self.playersFrames.keys()):
+            if len(self.playersFrames.keys()) < len(ids):
+                for iden in ids:
+                    if iden not in list(self.playersFrames.keys()):
+                        self.playersFrames[iden] = []
+                        self.playersPartialClassifications[iden] = []
+                        self.playersFrameFlag[iden] = True
+                        self.playersFinalClassifications[iden] = "undefined"
+            
+            else:
+                for iden in list(self.playersFrames.keys()):
+                    if iden not in ids:
+                        self.playersFrames.pop(iden)
+                        self.playersFrameFlag.pop(iden)
+                        self.playersPartialClassifications.pop(iden)
+                        self.playersFinalClassifications.pop(iden)
+        
+        # DRAW BOUNDING BOXES, ASSOCIATE PLAYERS WITH TEAMS AND PERFORM ACTION RECOGNITION FOR EACH PLAYER
+        for box, identity, cls in zip(boxes, ids, classes):
+            
+            hasAction = False
+
+            cropAndResize = cropPlayer(frame, box)               # CROP PLAYER FROM FRAME FOR ACTION RECOGNITION
+            
+            for ide, frames in self.playersFrames.items():               # TRACK HOW MANY FRAMES HAS EACH PLAYER
+                print(f"Player {ide} has {len(frames)} frames")
+
+            # QUEUE OF 16 FRAMES
+            if self.playersFrameFlag[identity]:
+                self.playersFrames[identity].append(cropAndResize)
+                self.playersFrameFlag[identity] = False
+            else:
+                self.playersFrameFlag[identity] = True
+
+            if len(self.playersFrames[identity]) > 16:
+                    self.playersFrames[identity].pop(0)
+
+            # INFERENCE
+            if len(self.playersFrames[identity]) == 16:
+                inputFrames = inferenceShape(torch.Tensor(self.playersFrames[identity]))  # ADJUST SHAPE FOR INFERENCE
+                inputFrames = inputFrames.to(device=self.device)                             # SEND TO GPU
+
+                with torch.no_grad():
+                    outputs = self.model(inputFrames)                    # INFERENCE
+                    _, pred = torch.max(outputs, 1)
+                    pred = pred.cpu().numpy()
+                    action = self.labels[pred[0]]                       # GET LABEL
+                    self.playersPartialClassifications[identity].append(action)                     # APPEND TO QUEUE OF CLASSIFICATIONS
+
+                    if len(self.playersPartialClassifications[identity]) > SIZE_OF_ACTION_QUEUE: 
+                        self.playersPartialClassifications[identity].pop(0)
+
+                    if len(self.playersPartialClassifications[identity]) == SIZE_OF_ACTION_QUEUE:   # QUEUE OF 5 CLASSIFICATIONS
+                        self.playersFinalClassifications[identity] = getMostCommonElement(self.playersPartialClassifications[identity]) # GET MOST COMMON CLASSIFICATION
+                        #hasAction = True
+
+        return self.playersFinalClassifications
+
+        # outputs = self.model(input)
+        # _, pred = torch.max(outputs, 1)
+        # return pred.cpu().numpy()
     
     def getLabel(self, label):
         return self.labels[label]
