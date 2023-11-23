@@ -157,6 +157,10 @@ def main():
 
     video.release()
     cv2.destroyAllWindows()
+
+    # PRINT HEATMAPS
+    # actionAnalyzer.printHeatmapStepsTeam1()
+    # actionAnalyzer.printHeatmapStepsTeam2()
         
 
 if __name__ == '__main__':

@@ -1,13 +1,20 @@
 import cv2
 import numpy as np
 
+# d^2 = (x2 - x1)^2 + (y2 - y1)^2
+def pixelInsideCircle(x, y, c, r):
+    return (x - c[0])**2 + (y - c[1])**2 <= r**2
+
+
+
 class ActionAnalysis:
     def __init__(self, topviewImage):
-        self.topviewImage = cv2.cvtColor(topviewImage, cv2.COLOR_BGR2GRAY)
-        self.topviewImage = cv2.GaussianBlur(self.topviewImage, (5, 5), 0)
-        self.topviewImage = cv2.threshold(self.topviewImage, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+        self.topviewImage = topviewImage
+        self.topviewImageBin = cv2.cvtColor(topviewImage, cv2.COLOR_BGR2GRAY)
+        self.topviewImageBin = cv2.GaussianBlur(self.topviewImageBin, (5, 5), 0)
+        self.topviewImageBin = cv2.threshold(self.topviewImageBin, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
-        connectedComponents = cv2.connectedComponentsWithStats(self.topviewImage, 4, cv2.CV_32S)
+        connectedComponents = cv2.connectedComponentsWithStats(self.topviewImageBin, 4, cv2.CV_32S)
         (numLabels, labels, stats, centroids) = connectedComponents
         
         # sort labels by area
@@ -48,47 +55,33 @@ class ActionAnalysis:
                 self.FGAteam2 += 1
         
     def setStep(self, pos, team):
-        # TODO: hay que aumentar area en la que se incrementa los valores (poner dentro de un area a la redonda)
-        if team == 0:
-            self.movementHeatmapTeam1[pos[1]][pos[0]] += 20
-            self.movementHeatmapTeam1[pos[1]+1][pos[0]] += 20
-            self.movementHeatmapTeam1[pos[1]-1][pos[0]] += 20
-            self.movementHeatmapTeam1[pos[1]][pos[0]+1] += 20
-            self.movementHeatmapTeam1[pos[1]][pos[0]-1] += 20
-            self.movementHeatmapTeam1[pos[1]+1][pos[0]+1] += 20
-            self.movementHeatmapTeam1[pos[1]-1][pos[0]-1] += 20
-            self.movementHeatmapTeam1[pos[1]+1][pos[0]-1] += 20
-            self.movementHeatmapTeam1[pos[1]-1][pos[0]+1] += 20
-
-        else:
-            self.movementHeatmapTeam2[pos[1]][pos[0]] += 20
-            self.movementHeatmapTeam2[pos[1]+1][pos[0]] += 20
-            self.movementHeatmapTeam2[pos[1]-1][pos[0]] += 20
-            self.movementHeatmapTeam2[pos[1]][pos[0]+1] += 20
-            self.movementHeatmapTeam2[pos[1]][pos[0]-1] += 20
-            self.movementHeatmapTeam2[pos[1]+1][pos[0]+1] += 20
-            self.movementHeatmapTeam2[pos[1]-1][pos[0]-1] += 20
-            self.movementHeatmapTeam2[pos[1]+1][pos[0]-1] += 20
-            self.movementHeatmapTeam2[pos[1]-1][pos[0]+1] += 20
+        radius = 8
+        for y in range(pos[1]-radius, pos[1]+radius):
+            for x in range(pos[0]-radius, pos[0]+radius):
+                if pixelInsideCircle(x, y, pos, radius):
+                    if team == 0:
+                        self.movementHeatmapTeam1[y][x] += 5
+                    else:
+                        self.movementHeatmapTeam2[y][x] += 5
 
 
     def getShotDetectedMap(self):
         return self.shotTrackTeam1, self.shotTrackTeam2
     
     def printHeatmapStepsTeam1(self):
-        # print the sum of all the values of self.movementHeatmapTeam1 matrix
-        print(np.sum(self.movementHeatmapTeam1))
-        print("----------------------------------")
+        # TODO: port this function to statisticsGeneration.py, but saving the image instead of showing it
         blurred = cv2.GaussianBlur(self.movementHeatmapTeam1, (5, 5), 0)
         matrixNormalized = cv2.normalize(blurred, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
         heatmap = cv2.applyColorMap(matrixNormalized, cv2.COLORMAP_JET)
+        heatmap = cv2.addWeighted(heatmap, 0.5, self.topviewImage, 0.5, 0)
         cv2.imshow("movementHeatmapTeam1", heatmap)
         cv2.waitKey(0)
     
     def printHeatmapStepsTeam2(self):
-        print(np.sum(self.movementHeatmapTeam2))
+        # TODO: port this function to statisticsGeneration.py, but saving the image instead of showing it
         blurred = cv2.GaussianBlur(self.movementHeatmapTeam2, (5, 5), 0)
         matrixNormalized = cv2.normalize(blurred, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
         heatmap = cv2.applyColorMap(matrixNormalized, cv2.COLORMAP_JET)
+        heatmap = cv2.addWeighted(heatmap, 0.5, self.topviewImage, 0.5, 0)
         cv2.imshow("movementHeatmapTeam2", heatmap)
         cv2.waitKey(0)
