@@ -12,6 +12,7 @@ from actionAnalysis.actionAnalysis import ActionAnalysis
 import actionRecognition.actionRecognition as ar
 import utils
 import matplotlib.pyplot as plt
+from statisticsGeneration.statisticsGeneration import StatisticsGenerator
 
 # VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
@@ -79,6 +80,7 @@ def main():
     topviewImg = cv2.imread(TOPVIEW_PATH)
 
     actionAnalyzer = ActionAnalysis(topviewImage=topviewImg)
+    statisticsGenerator = StatisticsGenerator(topviewImage=topviewImg)
 
     team1Img = cv2.imread(TEAM_1_PLAYER)
     team2Img = cv2.imread(TEAM_2_PLAYER)
@@ -132,10 +134,12 @@ def main():
 
                 floorPoint = ((box[0] + box[2]) / 2, box[3])
                 floorPointTransformed = twTransform.transformPoint(floorPoint)
-                actionAnalyzer.setStep((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)
+                statisticsGenerator.storeStep((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)
 
                 if actions[identity] == "shoot" and prevActionsClassifications[identity] == "ball in hand":
-                    actionAnalyzer.shotDetected((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)
+                    pos = (int(floorPointTransformed[0]), int(floorPointTransformed[1]))
+                    shotValue = actionAnalyzer.shotDetected(pos)
+                    statisticsGenerator.storeShot(pos, association, shotValue)
 
         prevActionsClassifications = copy.deepcopy(actions)
         
@@ -159,8 +163,7 @@ def main():
     cv2.destroyAllWindows()
 
     # PRINT HEATMAPS
-    # actionAnalyzer.printHeatmapStepsTeam1()
-    # actionAnalyzer.printHeatmapStepsTeam2()
+    statisticsGenerator.printHeatmaps()
         
 
 if __name__ == '__main__':

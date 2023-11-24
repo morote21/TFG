@@ -1,51 +1,79 @@
-# from ultralytics import YOLO
-
-# model = YOLO("./runs/detect/train/weights/best.pt")
-
-# results = model.track(source="/home/morote/Desktop/input_tfg/nba2k_test.mp4", show=True, conf=0.5)
-
-import pickle
 import numpy as np
-
-# file = open("/home/morote/Desktop/dataset/examples/0000000.npy", "rb")
-
-# l = np.load("/home/morote/Desktop/dataset/examples/0000000.npy", allow_pickle=True)
-# print(l)
-
-from domainLayer.input_data.coordinate_store import RimCoordinates
 import cv2
 import copy
+from domainLayer import utils
+
+
+def getRimCoords(image):
+    def clickEvent(event, x, y, flags, param):        
+        if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_LBUTTONUP:
+            param.append((x, y))
+    
+    coords = []
+    cv2.namedWindow("rim coords")
+    cv2.setMouseCallback("rim coords", clickEvent, param=coords)
+
+    while 1:
+        cv2.imshow("rim coords", image)
+        if len(coords) == 2:
+            cv2.destroyAllWindows()
+            break
+        
+        k = cv2.waitKey(20) & 0xFF
+        if k == 27:
+            break
+
+    cv2.destroyAllWindows()
+
+    return np.array(coords)
+
+
 
 OFFICIAL_RIM_DIAMETER = 46
 OFFICIAL_BALL_DIAMETER = 24
 
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/nba2k_test.mp4"
 video = cv2.VideoCapture(VIDEO_PATH)
+fps = video.get(cv2.CAP_PROP_FPS)
+frameDelay = int(1000 / fps)
 
 ret, frame = video.read()
-scene_copy = copy.deepcopy(frame)
+frame = utils.resizeFrame(frame, height=1080) 
 
-rc = RimCoordinates()
-cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-param = [0, scene_copy]
-cv2.setMouseCallback('image', rc.select_rim_diameter, param)
+sceneCopy = copy.deepcopy(frame)
 
-while 1:
+rimPoints = getRimCoords(sceneCopy)
+print(rimPoints)
+rimCenter = np.mean(rimPoints, axis=0)
+rimDiameter = np.linalg.norm(rimPoints[0] - rimPoints[1])
 
-    if not rc.array_filled:
-        cv2.imshow('image', scene_copy)
+aboveTop = int(rimCenter[1] - rimDiameter)
+aboveBottom = int(rimCenter[1] - 2)
+aboveLeft = int(rimCenter[0] - rimDiameter / 2)
+aboveRight = int(rimCenter[0] + rimDiameter / 2)
 
-    else:
-        cv2.destroyAllWindows()
+belowTop = int(rimCenter[1] + 2)
+belowBottom = int(rimCenter[1] + rimDiameter)
+belowLeft = int(rimCenter[0] - rimDiameter / 2)
+belowRight = int(rimCenter[0] + rimDiameter / 2)
+
+aboveSquare = sceneCopy[aboveTop:aboveBottom, aboveLeft:aboveRight]
+belowSquare = sceneCopy[belowTop:belowBottom, belowLeft:belowRight]
+
+# draw square on sceneCopy
+while True:
+    ret, frame = video.read()
+    if not ret:
         break
 
-    k = cv2.waitKey(20) & 0xFF
-    if k == 27:
-        break
+    frame = utils.resizeFrame(frame, height=1080)
+    sceneCopy = copy.deepcopy(frame)
 
+    cv2.rectangle(sceneCopy, (aboveLeft, aboveTop), (aboveRight, aboveBottom), (0, 255, 0), 2)
+    cv2.rectangle(sceneCopy, (belowLeft, belowTop), (belowRight, belowBottom), (0, 255, 0), 2)
+
+    cv2.imshow("scene", sceneCopy)
+    cv2.waitKey(frameDelay)
+
+video.release()
 cv2.destroyAllWindows()
-
-rim_points = rc.get_rim_coordinates()
-rim_left_point = rim_points[0]
-rim_right_point = rim_points[1]
-
