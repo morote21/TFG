@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 
 # d^2 = (x2 - x1)^2 + (y2 - y1)^2
 def pixelInsideCircle(x, y, c, r):
@@ -12,6 +13,19 @@ def generateHeatMap(tracks, topview):
     heatmap = cv2.applyColorMap(matrixNormalized, cv2.COLORMAP_JET)
     heatmap = cv2.addWeighted(heatmap, 0.5, topview, 0.5, 0)
     return heatmap
+
+def generateShotTrack(tracks, topview):
+    
+    topviewCopy = copy.deepcopy(topview)
+    # draw an x for each shot
+    for y in range(tracks.shape[0]):
+        for x in range(tracks.shape[1]):
+            if tracks[y][x].any() > 0:
+                cv2.line(topviewCopy, (x-5, y-5), (x+5, y+5), (0, 0, 255), 2)
+                cv2.line(topviewCopy, (x+5, y-5), (x-5, y+5), (0, 0, 255), 2)
+    
+    return topviewCopy
+
 
 class StatisticsGenerator:
     def __init__(self, topviewImage):
@@ -65,3 +79,23 @@ class StatisticsGenerator:
         cv2.imshow("shot heatmap team 1", shotHeatmap1)
         cv2.imshow("shot heatmap team 2", shotHeatmap2)
         cv2.waitKey(0)
+    
+    def getStatistics(self):
+        statisticsDict = {
+            "Team1" : {
+                "FGA" : self.FGAteam1,
+                "3PA" : self.threePAteam1,
+                "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam1, self.topview),
+                "ShotHeatmap" : generateHeatMap(self.shotTrackTeam1, self.topview),
+                "ShotTrack" : generateShotTrack(self.shotTrackTeam1, self.topview)
+            },
+            "Team2" : {
+                "FGA" : self.FGAteam2,
+                "3PA" : self.threePAteam2,
+                "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam2, self.topview),
+                "ShotHeatmap" : generateHeatMap(self.shotTrackTeam2, self.topview),
+                "ShotTrack" : generateShotTrack(self.shotTrackTeam2, self.topview)
+            }
+        }
+
+        return statisticsDict

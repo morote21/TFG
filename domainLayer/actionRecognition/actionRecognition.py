@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import sys
-sys.path.insert(0, '..')
 
 import copy
 from easydict import EasyDict
@@ -67,7 +65,6 @@ def inferenceShape(batch):
     batch = batch.permute(3, 0, 1, 2)    # (time, height, width, channels) -> (channels, time, height, width)
     # add 1 dimension to the beginning of the tensor of size 1
     batch = batch.unsqueeze(0)
-    print(batch.shape)
     return batch
 
 
@@ -117,9 +114,6 @@ class ActionRecognition:
             hasAction = False
 
             cropAndResize = cropPlayer(frame, box)               # CROP PLAYER FROM FRAME FOR ACTION RECOGNITION
-            
-            for ide, frames in self.playersFrames.items():               # TRACK HOW MANY FRAMES HAS EACH PLAYER
-                print(f"Player {ide} has {len(frames)} frames")
 
             # QUEUE OF 16 FRAMES
             if self.playersFrameFlag[identity]:
@@ -151,10 +145,6 @@ class ActionRecognition:
                         #hasAction = True
 
         return self.playersFinalClassifications
-
-        # outputs = self.model(input)
-        # _, pred = torch.max(outputs, 1)
-        # return pred.cpu().numpy()
     
     def getLabel(self, label):
         return self.labels[label]

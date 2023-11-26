@@ -3,22 +3,23 @@ import sys
 import copy
 import numpy as np
 import torch
-from topviewTransform.topview import Topview
+from domainLayer.topviewTransform.topview import Topview
 from ultralytics import YOLO
-from courtSegmentation import courtSegmentation as cs
-from personDetection.personDetection import Tracker, drawBoundingBoxPlayer
-from playerRecognition.teamAssociation import Teams
-from actionAnalysis.actionAnalysis import ActionAnalysis
-import actionRecognition.actionRecognition as ar
-import utils
+from domainLayer.courtSegmentation import courtSegmentation as cs
+from domainLayer.personDetection.personDetection import Tracker, drawBoundingBoxPlayer
+from domainLayer.playerRecognition.teamAssociation import Teams
+from domainLayer.actionAnalysis.actionAnalysis import ActionAnalysis
+import domainLayer.actionRecognition.actionRecognition as ar
+import domainLayer.utils as utils
 import matplotlib.pyplot as plt
-from statisticsGeneration.statisticsGeneration import StatisticsGenerator
+from domainLayer.statisticsGeneration.statisticsGeneration import StatisticsGenerator
+from persistenceLayer.database import storeStatistics
 
 # VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
 TOPVIEW_PATH = "/home/morote/Desktop/input_tfg/synthetic_court2.jpg"
-TEAM_1_PLAYER = "/home/morote/Pictures/team1_black.png"
-TEAM_2_PLAYER = "/home/morote/Pictures/team2_white.png"
+TEAM_1_PLAYER = "/home/morote/Desktop/input_tfg/team1_black.png"
+TEAM_2_PLAYER = "/home/morote/Desktop/input_tfg/team2_white.png"
 
 SIZE_OF_ACTION_QUEUE = 7
 
@@ -73,7 +74,7 @@ def extractFrames(videoPath, team1path, team2path):
 
 
 
-def main():
+def executeStatisticsGeneration(args):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -82,20 +83,20 @@ def main():
     actionAnalyzer = ActionAnalysis(topviewImage=topviewImg)
     statisticsGenerator = StatisticsGenerator(topviewImage=topviewImg)
 
-    team1Img = cv2.imread(TEAM_1_PLAYER)
-    team2Img = cv2.imread(TEAM_2_PLAYER)
+    team1Img = cv2.imread(args.get("team1Path"))
+    team2Img = cv2.imread(args.get("team2Path"))
 
     teams = Teams(team1Img, team2Img, 6)                                # CREATE TEAMS OBJECT, WHICH CONTAINS DATA ABOUT BOTH TEAMS 
 
-    video = cv2.VideoCapture(VIDEO_PATH)
+    video = cv2.VideoCapture(args.get("videoPath"))                     # READ VIDEO
 
-    ret, frame = video.read()                                           # READ FIRST FRAME FOR TOPVIEW TRANSFORM COMPUTATION
-    frame = utils.resizeFrame(frame, height=1080)                       # RESIZE FRAME TO 1080p
+    ret, firstFrame = video.read()                                           # READ FIRST FRAME FOR TOPVIEW TRANSFORM COMPUTATION
+    firstFrame = utils.resizeFrame(firstFrame, height=1080)                       # RESIZE FRAME TO 1080p
 
     if not ret:
         print("Error reading video frame.\n")
 
-    sceneCpy = copy.deepcopy(frame)
+    sceneCpy = copy.deepcopy(firstFrame)
     topviewCpy = copy.deepcopy(topviewImg)
 
     # GET BORDERS OF THE COURT AND THE TOPVIEW IMAGE
@@ -107,8 +108,7 @@ def main():
 
     pts = np.array(twTransform.getSceneIntersections(), np.int32)
 
-    segmentedCourt = cs.courtSegmentation(pts, frame.shape)
-    segmentedCourt = segmentedCourt > 0                                 # MASK TO FILTER PEOPLE INSIDE THE COURT
+    segmentedCourt = cs.courtSegmentation(pts, firstFrame.shape)            # MASK TO FILTER PEOPLE INSIDE THE COURT                              
 
     playerTracker = Tracker()                                           # INITIALIZE TRACKER OBJECT            
     actionRecognizer = ar.ActionRecognition()                           # INITIALIZE ACTION RECOGNITION OBJECT
@@ -162,9 +162,17 @@ def main():
     video.release()
     cv2.destroyAllWindows()
 
-    # PRINT HEATMAPS
-    statisticsGenerator.printHeatmaps()
-        
+    statisticsDict = statisticsGenerator.getStatistics()
+    
+    statisticsDict["firstFrame"] = firstFrame
+    statisticsDict["scenePoints"] = scenePoints.tolist()
+    storeStatistics(statisticsDict)
 
 if __name__ == '__main__':
-    main()
+    argsDict = {
+        "videoPath": VIDEO_PATH,
+        "team1Path": TEAM_1_PLAYER,
+        "team2Path": TEAM_2_PLAYER,
+    }
+    
+    executeStatisticsGeneration(args=argsDict)
