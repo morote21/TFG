@@ -13,8 +13,9 @@ import domainLayer.actionRecognition.actionRecognition as ar
 import domainLayer.utils as utils
 import matplotlib.pyplot as plt
 from domainLayer.statisticsGeneration.statisticsGeneration import StatisticsGenerator
-from persistenceLayer.database import storeStatistics
+from persistenceLayer.database import storeStatistics, readTopviewPoints, readScenePoints
 import json
+from pathlib import Path
 
 # VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
@@ -101,32 +102,19 @@ def executeStatisticsGeneration(args):
     sceneCpy = copy.deepcopy(firstFrame)
     topviewCpy = copy.deepcopy(topviewImg)
 
+    scenePoints = None
+    topviewPoints = None
     # GET BORDERS OF THE COURT AND THE TOPVIEW IMAGE
-    scenePoints = utils.getBorders(sceneCpy)
-    # TODO: get borders from json file and choose between left or right side depending on args
-    # read topview coordinates from json file
-    topviewPoints = []
-    with open(TOPVIEW_POINTS, "r") as f:
-        topviewPointsJson = json.load(f)
-        if args.get("courtSide") == "left":
-            topviewPointsSide = topviewPointsJson["left"]
-            topviewPoints.append((topviewPointsSide["topLeft"]["x"], topviewPointsSide["topLeft"]["y"]))
-            topviewPoints.append((topviewPointsSide["topRight"]["x"], topviewPointsSide["topRight"]["y"]))
-            topviewPoints.append((topviewPointsSide["bottomRight"]["x"], topviewPointsSide["bottomRight"]["y"]))
-            topviewPoints.append((topviewPointsSide["bottomLeft"]["x"], topviewPointsSide["bottomLeft"]["y"]))
-        else:
-            topviewPointsSide = topviewPointsJson["right"]
-            topviewPoints.append((topviewPointsSide["bottomRight"]["x"], topviewPointsSide["bottomRight"]["y"]))
-            topviewPoints.append((topviewPointsSide["bottomLeft"]["x"], topviewPointsSide["bottomLeft"]["y"]))
-            topviewPoints.append((topviewPointsSide["topLeft"]["x"], topviewPointsSide["topLeft"]["y"]))
-            topviewPoints.append((topviewPointsSide["topRight"]["x"], topviewPointsSide["topRight"]["y"]))
-    
-    topviewPoints = np.array(topviewPoints, np.int32)
+    if args.get("scenePointsPath") is None:
+        scenePoints = utils.getBorders(sceneCpy)
+        topviewPoints = readTopviewPoints(args.get("courtSide"))
+    else:
+        scenePoints, courtSide = readScenePoints(args.get("scenePointsPath"))
+        topviewPoints = readTopviewPoints(courtSide)
 
     print(topviewPoints)
     print(scenePoints)
 
-    #topviewPoints = utils.getBorders(topviewCpy)
 
     twTransform = Topview()
     twTransform.computeTopview(scenePoints, topviewPoints)              # COMPUTE TOPVIEW MATRIX
@@ -189,8 +177,15 @@ def executeStatisticsGeneration(args):
 
     statisticsDict = statisticsGenerator.getStatistics()
     
-    statisticsDict["firstFrame"] = firstFrame
-    statisticsDict["scenePoints"] = scenePoints.tolist()
+    statisticsDict["firstFrame"] = None
+    statisticsDict["scenePoints"] = None        # None if scene already exists, else create new scene with scenePoints
+    statisticsDict["courtSide"] = None
+
+    if args.get("scenePointsPath") is None:
+        statisticsDict["firstFrame"] = firstFrame
+        statisticsDict["scenePoints"] = twTransform.getSceneIntersections().tolist()
+        statisticsDict["courtSide"] = args.get("courtSide")
+
     storeStatistics(statisticsDict)
 
 if __name__ == '__main__':
@@ -198,7 +193,8 @@ if __name__ == '__main__':
         "videoPath": VIDEO_PATH,
         "team1Path": TEAM_1_PLAYER,
         "team2Path": TEAM_2_PLAYER,
-        "courtSide": "right"
+        "courtSide": "right",
+        "scenePointsPath": None     # Path of folder containing scenePoints.json
     }
     
     executeStatisticsGeneration(args=argsDict)

@@ -72,7 +72,11 @@ class Topview:
 
     def computeTopview(self, scenePoints, topviewPoints):
         # The topview transformation is done using homography matrix
-        self.sceneIntersections = allIntersections(scenePoints)
+        print(len(scenePoints))
+        if len(scenePoints) == 8:
+            self.sceneIntersections = allIntersections(scenePoints)
+        else:
+            self.sceneIntersections = scenePoints
         #self.topviewIntersections = allIntersections(topviewPoints)
         self.topviewIntersections = topviewPoints
 

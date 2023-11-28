@@ -22,7 +22,9 @@ class MainWindow(QMainWindow):
         self.argsDict = {
             "videoPath": None,
             "team1Path": None,
-            "team2Path": None
+            "team2Path": None,
+            "courtSide": None,
+            "scenePointsPath": None
         }
         self.setWindowTitle("Basketball Statistics Generator")
         
@@ -62,9 +64,26 @@ class MainWindow(QMainWindow):
         newSceneInsertButton.clicked.connect(self.insertNewScene)
         statisticsGeneratorLayout.addWidget(newSceneInsertButton)
 
-        existentSceneInsertButton = QPushButton("Select existent scene")
-        existentSceneInsertButton.clicked.connect(self.selectExistentScene)
-        statisticsGeneratorLayout.addWidget(existentSceneInsertButton)
+        # 2 more buttons selecting right side court or left side court
+        self.courtSideLabel = QLabel("Choose court side:")
+        statisticsGeneratorLayout.addWidget(self.courtSideLabel)
+        self.courtSideLabel.hide()
+
+        self.rightSideButton = QPushButton("Right Side")
+        self.rightSideButton.clicked.connect(self.setRightSide)
+        statisticsGeneratorLayout.addWidget(self.rightSideButton)
+        self.rightSideButton.hide()
+
+        self.leftSideButton = QPushButton("Left Side")
+        self.leftSideButton.clicked.connect(self.setLeftSide)
+        statisticsGeneratorLayout.addWidget(self.leftSideButton)
+        self.leftSideButton.hide()
+        
+        
+        self.existentSceneInsertButton = QPushButton("Select existent scene")
+        self.existentSceneInsertButton.clicked.connect(self.selectExistentScene)
+        statisticsGeneratorLayout.addWidget(self.existentSceneInsertButton)
+        self.existentSceneInsertButton.show()
 
         self.videoLabel = QLabel("Insert video to analyze:")
         statisticsGeneratorLayout.addWidget(self.videoLabel)
@@ -73,6 +92,9 @@ class MainWindow(QMainWindow):
         self.videoInsertButton.clicked.connect(self.insertVideo)
         statisticsGeneratorLayout.addWidget(self.videoInsertButton)
         self.videoInsertButton.show()
+
+
+
 
         nTeamsLabel = QLabel("Choose number of teams:")
         statisticsGeneratorLayout.addWidget(nTeamsLabel)
@@ -110,6 +132,18 @@ class MainWindow(QMainWindow):
     def openStatisticsViewer(self):
         print("Opening statistics viewer...")
 
+    def setRightSide(self):
+        self.argsDict["courtSide"] = "right"
+        self.courtSideLabel.hide()
+        self.rightSideButton.hide()
+        self.leftSideButton.hide()
+    
+    def setLeftSide(self):
+        self.argsDict["courtSide"] = "left"
+        self.courtSideLabel.hide()
+        self.rightSideButton.hide()
+        self.leftSideButton.hide()
+
     def selectExistentScene(self):
         self.videoLabel.show()
         self.videoInsertButton.show()
@@ -121,7 +155,7 @@ class MainWindow(QMainWindow):
         # iterate over each folder in scenesFolder
         scenePaths = [scenePath for scenePath in sceneFolder.iterdir()]      
         for scenePath in scenePaths:
-            scenePathImg = scenePath / "scene.jpg"
+            scenePathImg = scenePath / "firstFrame.png"
             scene = QListWidgetItem() 
             pixmap = QPixmap(str(scenePathImg))
             icon = QIcon(pixmap)
@@ -137,7 +171,8 @@ class MainWindow(QMainWindow):
     def sceneSelected(self, item):
         # print path of item
         scenePath = Path(item.text())
-        self.argsDict["sceneCorners"] = str(scenePath / "corners.json")
+        self.argsDict["scenePointsPath"] = str(scenePath)
+        print("Scene selected: ", scenePath)
 
     def setOneTeam(self):
         self.team1Label.hide()
@@ -165,6 +200,11 @@ class MainWindow(QMainWindow):
             self.argsDict["videoPath"] = videoPath
             self.videoLabel.hide()
             self.videoInsertButton.hide()
+            self.courtSideLabel.show()
+            self.rightSideButton.show()
+            self.leftSideButton.show()
+            self.existentSceneInsertButton.hide()
+
             self.videoSetted = True
             self.sceneSetted = True
         else:
