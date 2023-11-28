@@ -20,6 +20,7 @@ VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
 TOPVIEW_PATH = "/home/morote/Desktop/input_tfg/synthetic_court2.jpg"
 TEAM_1_PLAYER = "/home/morote/Desktop/input_tfg/team1_black.png"
 TEAM_2_PLAYER = "/home/morote/Desktop/input_tfg/team2_white.png"
+TOPVIEW_POINTS = "database/topview/topview_points.json"
 
 SIZE_OF_ACTION_QUEUE = 7
 
@@ -101,6 +102,7 @@ def executeStatisticsGeneration(args):
 
     # GET BORDERS OF THE COURT AND THE TOPVIEW IMAGE
     scenePoints = utils.getBorders(sceneCpy)
+    # TODO: get borders from json file and choose between left or right side depending on args
     topviewPoints = utils.getBorders(topviewCpy)
 
     twTransform = Topview()
@@ -173,6 +175,7 @@ if __name__ == '__main__':
         "videoPath": VIDEO_PATH,
         "team1Path": TEAM_1_PLAYER,
         "team2Path": TEAM_2_PLAYER,
+        "courtSide": "right"
     }
     
     executeStatisticsGeneration(args=argsDict)
