@@ -73,7 +73,8 @@ class Topview:
     def computeTopview(self, scenePoints, topviewPoints):
         # The topview transformation is done using homography matrix
         self.sceneIntersections = allIntersections(scenePoints)
-        self.topviewIntersections = allIntersections(topviewPoints)
+        #self.topviewIntersections = allIntersections(topviewPoints)
+        self.topviewIntersections = topviewPoints
 
         self.h, st = cv2.findHomography(self.sceneIntersections, self.topviewIntersections, cv2.RANSAC, 3.0)
 

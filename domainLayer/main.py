@@ -14,13 +14,14 @@ import domainLayer.utils as utils
 import matplotlib.pyplot as plt
 from domainLayer.statisticsGeneration.statisticsGeneration import StatisticsGenerator
 from persistenceLayer.database import storeStatistics
+import json
 
 # VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
 TOPVIEW_PATH = "/home/morote/Desktop/input_tfg/synthetic_court2.jpg"
 TEAM_1_PLAYER = "/home/morote/Desktop/input_tfg/team1_black.png"
 TEAM_2_PLAYER = "/home/morote/Desktop/input_tfg/team2_white.png"
-TOPVIEW_POINTS = "database/topview/topview_points.json"
+TOPVIEW_POINTS = "database/topview/topview_coords.json"
 
 SIZE_OF_ACTION_QUEUE = 7
 
@@ -103,7 +104,29 @@ def executeStatisticsGeneration(args):
     # GET BORDERS OF THE COURT AND THE TOPVIEW IMAGE
     scenePoints = utils.getBorders(sceneCpy)
     # TODO: get borders from json file and choose between left or right side depending on args
-    topviewPoints = utils.getBorders(topviewCpy)
+    # read topview coordinates from json file
+    topviewPoints = []
+    with open(TOPVIEW_POINTS, "r") as f:
+        topviewPointsJson = json.load(f)
+        if args.get("courtSide") == "left":
+            topviewPointsSide = topviewPointsJson["left"]
+            topviewPoints.append((topviewPointsSide["topLeft"]["x"], topviewPointsSide["topLeft"]["y"]))
+            topviewPoints.append((topviewPointsSide["topRight"]["x"], topviewPointsSide["topRight"]["y"]))
+            topviewPoints.append((topviewPointsSide["bottomRight"]["x"], topviewPointsSide["bottomRight"]["y"]))
+            topviewPoints.append((topviewPointsSide["bottomLeft"]["x"], topviewPointsSide["bottomLeft"]["y"]))
+        else:
+            topviewPointsSide = topviewPointsJson["right"]
+            topviewPoints.append((topviewPointsSide["bottomRight"]["x"], topviewPointsSide["bottomRight"]["y"]))
+            topviewPoints.append((topviewPointsSide["bottomLeft"]["x"], topviewPointsSide["bottomLeft"]["y"]))
+            topviewPoints.append((topviewPointsSide["topLeft"]["x"], topviewPointsSide["topLeft"]["y"]))
+            topviewPoints.append((topviewPointsSide["topRight"]["x"], topviewPointsSide["topRight"]["y"]))
+    
+    topviewPoints = np.array(topviewPoints, np.int32)
+
+    print(topviewPoints)
+    print(scenePoints)
+
+    #topviewPoints = utils.getBorders(topviewCpy)
 
     twTransform = Topview()
     twTransform.computeTopview(scenePoints, topviewPoints)              # COMPUTE TOPVIEW MATRIX

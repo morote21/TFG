@@ -127,7 +127,7 @@ class ActionRecognition:
 
             # INFERENCE
             if len(self.playersFrames[identity]) == 16:
-                inputFrames = inferenceShape(torch.Tensor(self.playersFrames[identity]))  # ADJUST SHAPE FOR INFERENCE
+                inputFrames = inferenceShape(torch.Tensor(np.array(self.playersFrames[identity])))  # ADJUST SHAPE FOR INFERENCE
                 inputFrames = inputFrames.to(device=self.device)                             # SEND TO GPU
 
                 with torch.no_grad():
