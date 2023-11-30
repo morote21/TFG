@@ -105,9 +105,12 @@ def executeStatisticsGeneration(args):
     scenePoints = None
     topviewPoints = None
     # GET BORDERS OF THE COURT AND THE TOPVIEW IMAGE
+
+    # if the scene is new, get the borders of the court and the topview image side from the user input
     if args.get("scenePointsPath") is None:
         scenePoints = utils.getBorders(sceneCpy)
         topviewPoints = readTopviewPoints(args.get("courtSide"))
+    # if the scene is already used, get the borders of the court from the scenePoints.json file
     else:
         scenePoints, courtSide = readScenePoints(args.get("scenePointsPath"))
         topviewPoints = readTopviewPoints(courtSide)
