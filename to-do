@@ -41,3 +41,23 @@ opciones de mejora de velocidad de algoritmo:
 		- posiblemente mas generalizado
 	- contras: 
 		- menos detallado
+
+
+- preguntar sobre entrega 15 diciembre
+- preguntar de nuevo sobre histograma de colores
+	reducir espacio de colores a 3 bits de color (dividir por 32 el color r,g y b) dara un color mas basto
+		el resultado será una matriz 3d, luego comparar con las plantillas
+- preguntar sobre estructura del tfg
+	- introduccion
+	- diseño
+	- planning y presupuesto
+	- implementacion
+	- test y resultados
+	- conclusiones y trabajos futuros
+
+
+
+
+seguramente no guarde mas partidos ni escenas porque una vez se guarda la primera, tenemos scene0 y game0 (dado que entra en la condicion == 0)
+pero para la siguiente entra en el else, y hay 1 archivo, pero al hacer range(numberScenes / numberGames), solo coge el 0 porque empieza desde el 0,
+pero al estar ya en la base de datos entonces no lo crea

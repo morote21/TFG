@@ -62,7 +62,7 @@ def storeStatistics(statisticsDict):
             
 
         else:
-            for i in range(sceneNumber):
+            for i in range(1, sceneNumber+1, 1):
                 if not os.path.exists(pathForScenes / f"scene{i}"): # if scene{i} does not exist, create it and store first frame and scenePoints
                     os.mkdir(pathForScenes / f"scene{i}")
 
@@ -110,7 +110,7 @@ def storeStatistics(statisticsDict):
         cv2.imwrite(str(pathForStatistics / "game0/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
 
     else:
-        for i in range(gameNumber):
+        for i in range(1, gameNumber + 1, 1):
             if not os.path.exists(pathForStatistics / f"game{i}"):
                 os.mkdir(pathForStatistics / f"game{i}")
                 jsonStatistics = json.dumps(numericalStatistics, indent=4)

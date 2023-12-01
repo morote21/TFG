@@ -6,7 +6,8 @@ def drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, act
 
     floorPoint = ((box[0] + box[2]) // 2, box[3])
     # get value of floorpoint in segmentedCourt
-    value = segmentedCourt[floorPoint[1]][floorPoint[0]]
+    # value = segmentedCourt[floorPoint[1]][floorPoint[0]]
+    value = 1
     if value:
         if association:
             cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
