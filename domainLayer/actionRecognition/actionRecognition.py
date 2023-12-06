@@ -94,6 +94,7 @@ class ActionRecognition:
         if len(ids) != len(self.playersFrames.keys()):
             if len(self.playersFrames.keys()) < len(ids):
                 for iden in ids:
+                    # TODO: CHANGE TO NUMPY ARRAYS OF SIZE 16
                     if iden not in list(self.playersFrames.keys()):
                         self.playersFrames[iden] = []
                         self.playersPartialClassifications[iden] = []
@@ -111,8 +112,6 @@ class ActionRecognition:
         # DRAW BOUNDING BOXES, ASSOCIATE PLAYERS WITH TEAMS AND PERFORM ACTION RECOGNITION FOR EACH PLAYER
         for box, identity, cls in zip(boxes, ids, classes):
             
-            hasAction = False
-
             cropAndResize = cropPlayer(frame, box)               # CROP PLAYER FROM FRAME FOR ACTION RECOGNITION
 
             # QUEUE OF 16 FRAMES
@@ -120,6 +119,7 @@ class ActionRecognition:
                 self.playersFrames[identity].append(cropAndResize)
                 self.playersFrameFlag[identity] = False
             else:
+                self.playersFrames[identity].append(cropAndResize)  # hardcoded para ver si funciona mejor con cada frame
                 self.playersFrameFlag[identity] = True
 
             if len(self.playersFrames[identity]) > 16:
@@ -135,6 +135,7 @@ class ActionRecognition:
                     _, pred = torch.max(outputs, 1)
                     pred = pred.cpu().numpy()
                     action = self.labels[pred[0]]                       # GET LABEL
+                    # TODO: CHANGE TO NUMPY ARRAY OF SIZE_OF_ACTION_QUEUE
                     self.playersPartialClassifications[identity].append(action)                     # APPEND TO QUEUE OF CLASSIFICATIONS
 
                     if len(self.playersPartialClassifications[identity]) > SIZE_OF_ACTION_QUEUE: 

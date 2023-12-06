@@ -27,7 +27,7 @@ TOPVIEW_POINTS = "database/topview/topview_coords.json"
 SIZE_OF_ACTION_QUEUE = 7
 
 
-def extractFrames(videoPath, team1path, team2path):
+def executeStatisticsGeneration_noImshow(videoPath, team1path, team2path):
     videoFrames = []
     playerBoxes = []
 
@@ -71,7 +71,15 @@ def extractFrames(videoPath, team1path, team2path):
 
 
 
+def preprocessFrame(frame):
+    frameCpy = copy.deepcopy(frame)
+    frame_yuv = cv2.cvtColor(frameCpy, cv2.COLOR_BGR2YUV)
 
+    # equalize the histogram of the Y channel
+    frame_yuv[:, :, 0] = cv2.equalizeHist(frame_yuv[:, :, 0])
+    frame_result = cv2.cvtColor(frame_yuv, cv2.COLOR_YUV2BGR)
+
+    return frame_result
 
 
 
@@ -138,6 +146,8 @@ def executeStatisticsGeneration(args):
             break
 
         frame = utils.resizeFrame(frame, height=1080)                   # RESIZE FRAME TO 1080p
+        frame = preprocessFrame(frame)                                  # PREPROCESS FRAME 
+
         boxes, ids, classes = playerTracker.trackPlayers(frame=frame)   # TRACK PLAYERS IN FRAME
 
         actions = actionRecognizer.inference(frame, boxes, ids, classes)          # PERFORM ACTION RECOGNITION

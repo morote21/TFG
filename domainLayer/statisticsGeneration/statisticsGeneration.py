@@ -4,7 +4,10 @@ import matplotlib.pyplot as plt
 import copy
 
 # d^2 = (x2 - x1)^2 + (y2 - y1)^2
-def pixelInsideCircle(x, y, c, r):
+def pixelInsideCircle(shape, x, y, c, r):
+    if x < 0 or x >= shape[1] or y < 0 or y >= shape[0]:
+        return False
+    
     return (x - c[0])**2 + (y - c[1])**2 <= r**2
 
 def generateHeatMap(tracks, topview):
@@ -45,7 +48,7 @@ class StatisticsGenerator:
         radius = 8
         for y in range(pos[1]-radius, pos[1]+radius):
             for x in range(pos[0]-radius, pos[0]+radius):
-                if pixelInsideCircle(x, y, pos, radius):
+                if pixelInsideCircle(self.topview.shape, x, y, pos, radius):
                     if team == 0:
                         self.movementHeatmapTeam1[y][x] += 5
                     else:
