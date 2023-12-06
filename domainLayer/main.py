@@ -19,7 +19,7 @@ from pathlib import Path
 
 # VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
-TOPVIEW_PATH = "/home/morote/Desktop/input_tfg/synthetic_court2.jpg"
+TOPVIEW_PATH = "database/topview/topview_image.jpg"
 TEAM_1_PLAYER = "/home/morote/Desktop/input_tfg/team1_black.png"
 TEAM_2_PLAYER = "/home/morote/Desktop/input_tfg/team2_white.png"
 TOPVIEW_POINTS = "database/topview/topview_coords.json"
@@ -146,7 +146,7 @@ def executeStatisticsGeneration(args):
             break
 
         frame = utils.resizeFrame(frame, height=1080)                   # RESIZE FRAME TO 1080p
-        frame = preprocessFrame(frame)                                  # PREPROCESS FRAME 
+        #frame = preprocessFrame(frame)                                  # PREPROCESS FRAME 
 
         boxes, ids, classes = playerTracker.trackPlayers(frame=frame)   # TRACK PLAYERS IN FRAME
 

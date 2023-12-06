@@ -119,7 +119,6 @@ class ActionRecognition:
                 self.playersFrames[identity].append(cropAndResize)
                 self.playersFrameFlag[identity] = False
             else:
-                self.playersFrames[identity].append(cropAndResize)  # hardcoded para ver si funciona mejor con cada frame
                 self.playersFrameFlag[identity] = True
 
             if len(self.playersFrames[identity]) > 16:
