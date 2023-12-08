@@ -31,6 +31,13 @@ class MainWindow(QMainWindow):
         self.resolution = PyQt6.QtGui.QGuiApplication.primaryScreen().size()
         self.setGeometry(0, 0, self.resolution.width()//2, self.resolution.height()//2)
 
+        self.mainMenu()
+
+
+
+    def mainMenu(self):
+        self.takeCentralWidget()
+
         mainWidget = QWidget()
         self.setCentralWidget(mainWidget)
 
@@ -45,7 +52,15 @@ class MainWindow(QMainWindow):
 
         statisticsViewerButton = QPushButton("Statistics Viewer")
         statisticsViewerButton.clicked.connect(self.openStatisticsViewer)
-        mainLayout.addWidget(statisticsViewerButton)            
+        mainLayout.addWidget(statisticsViewerButton)
+
+
+    def openStatisticsViewer(self):
+        self.takeCentralWidget()
+
+        statisticsViewerWindow = QWidget()
+        self.setCentralWidget(statisticsViewerWindow)
+
 
 
     def openStatisticsGenerator(self):
@@ -162,6 +177,7 @@ class MainWindow(QMainWindow):
         statisticsGenerateButton = QPushButton("Generate Statistics")
         statisticsGenerateButton.clicked.connect(self.generateStatistics)
         statisticsGeneratorLayout.addWidget(statisticsGenerateButton)
+
 
     def openStatisticsViewer(self):
         print("Opening statistics viewer...")
@@ -306,14 +322,10 @@ class MainWindow(QMainWindow):
         self.team1InsertButton.setEnabled(True)
         self.team2InsertButton.setEnabled(True)
 
-        self.sceneSelectionLayout.removeWidget(self.listWidget)
-        self.listWidget.close()
 
-        print("Resetting parameters...")
     
     def backToMain(self):
-        self.takeCentralWidget()
-        self.__init__()
+        self.mainMenu()
             
 def initializeApp():
     app = QApplication(sys.argv)
