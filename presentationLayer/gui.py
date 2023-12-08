@@ -3,7 +3,7 @@ import PyQt6.QtCore
 import PyQt6.QtGui
 from PyQt6.QtGui import QPixmap, QIcon
 import PyQt6.QtWidgets
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QScrollArea
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QScrollArea
 import cv2
 import sys
 from domainLayer.main import executeStatisticsGeneration
@@ -18,6 +18,9 @@ class MainWindow(QMainWindow):
         self.team1Setted = False
         self.team2Setted = False
         self.nTeams = 1
+
+        self.statisticsToShow = False
+        self.statisticsSelected = None
 
         self.argsDict = {
             "videoPath": None,
@@ -54,14 +57,7 @@ class MainWindow(QMainWindow):
         statisticsViewerButton.clicked.connect(self.openStatisticsViewer)
         mainLayout.addWidget(statisticsViewerButton)
 
-
-    def openStatisticsViewer(self):
-        self.takeCentralWidget()
-
-        statisticsViewerWindow = QWidget()
-        self.setCentralWidget(statisticsViewerWindow)
-
-
+        
 
     def openStatisticsGenerator(self):
         self.takeCentralWidget()
@@ -322,10 +318,134 @@ class MainWindow(QMainWindow):
         self.team1InsertButton.setEnabled(True)
         self.team2InsertButton.setEnabled(True)
 
-
     
     def backToMain(self):
         self.mainMenu()
+
+
+    
+    def openStatisticsViewer(self):
+        print("Opening statistics viewer...")
+        self.takeCentralWidget()
+
+        statisticsViewerWindow = QWidget()
+        self.setCentralWidget(statisticsViewerWindow)
+
+        statisticsViewerLayout = QVBoxLayout()
+        statisticsViewerWindow.setLayout(statisticsViewerLayout)
+
+        topLayout = QHBoxLayout()
+
+        backButton = QPushButton("Back")
+        backButton.clicked.connect(self.backToMain)
+        topLayout.addWidget(backButton)
+
+        topLayout.addStretch()
+
+        statisticsButton = QPushButton("Open statistics")
+        statisticsButton.clicked.connect(self.selectStatistics)
+        topLayout.addWidget(statisticsButton)
+
+        statisticsViewerLayout.addLayout(topLayout)
+
+        #statisticsViewerLayout.addStretch()
+
+        
+        scrollArea = QScrollArea()
+        scrollArea.setWidgetResizable(True)
+
+        statisticsWidget = QWidget()
+        self.vertStatisticsLayout = QVBoxLayout()
+        statisticsWidget.setLayout(self.vertStatisticsLayout)
+
+        scrollArea.setWidget(statisticsWidget)
+
+        self.gridStatisticsLayout = QGridLayout()
+        self.vertStatisticsLayout.addLayout(self.gridStatisticsLayout)
+
+        statisticsViewerLayout.addWidget(scrollArea)
+
+        numericalStats = QLabel("Team stats")
+        self.vertStatisticsLayout.addWidget(numericalStats)
+
+
+
+    def selectStatistics(self):
+        # open scrollable list of statistics, being the statistics the path of a folder
+        self.listWidget = QListWidget()
+
+        statisticsFolder = Path("database/games")
+        # iterate over each folder in scenesFolder
+        statisticsPaths = [statisticsPath for statisticsPath in statisticsFolder.iterdir()]
+        for statisticsPath in statisticsPaths:
+            statistics = QListWidgetItem()
+            statistics.setText(str(statisticsPath))
+            self.listWidget.addItem(statistics)
+
+        self.listWidget.show()
+        self.listWidget.itemDoubleClicked.connect(self.statisticsSelection)
+    
+    def statisticsSelection(self, item):
+        # print path of item
+        statisticsPath = Path(item.text())
+        self.statisticsSelected = str(statisticsPath)
+
+        self.listWidget.hide()
+        self.listWidget.close()
+
+        print("Statistics selected: ", statisticsPath)
+
+        temporalGrid = QGridLayout()
+        # iterate through images in statisticsPath and add them to the grid, taking into account that not all of the elemnts in the path are images
+        statisticsImages = [statisticsImage for statisticsImage in statisticsPath.iterdir() if statisticsImage.suffix == ".png"]
+        for statisticsImage in statisticsImages:
+            if statisticsImage.name == "Team1ShotTrack.png":
+                pixmap = QPixmap(str(statisticsImage))
+                label = QLabel()
+                label.setPixmap(pixmap)
+                self.gridStatisticsLayout.addWidget(label, 0, 0)
+
+            elif statisticsImage.name == "Team2ShotTrack.png":
+                pixmap = QPixmap(str(statisticsImage))
+                label = QLabel()
+                label.setPixmap(pixmap)
+                self.gridStatisticsLayout.addWidget(label, 0, 1)
+
+            elif statisticsImage.name == "Team1MotionHeatmap.png":
+                pixmap = QPixmap(str(statisticsImage))
+                label = QLabel()
+                label.setPixmap(pixmap)
+                self.gridStatisticsLayout.addWidget(label, 1, 0)
+            
+            elif statisticsImage.name == "Team2MotionHeatmap.png":
+                pixmap = QPixmap(str(statisticsImage))
+                label = QLabel()
+                label.setPixmap(pixmap)
+                self.gridStatisticsLayout.addWidget(label, 1, 1)
+
+            elif statisticsImage.name == "Team1ShotHeatmap.png":
+                pixmap = QPixmap(str(statisticsImage))
+                label = QLabel()
+                label.setPixmap(pixmap)
+                self.gridStatisticsLayout.addWidget(label, 2, 0)
+            
+            elif statisticsImage.name == "Team2ShotHeatmap.png":
+                pixmap = QPixmap(str(statisticsImage))
+                label = QLabel()
+                label.setPixmap(pixmap)
+                self.gridStatisticsLayout.addWidget(label, 2, 1)
+
+        self.statisticsToShow = True
+
+
+
+
+    def resetViewer(self):
+        self.statisticsToShow = False
+        self.statisticsSelected = None
+
+        self.gridStatisticsLayout = QGridLayout()
+
             
 def initializeApp():
     app = QApplication(sys.argv)
