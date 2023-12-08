@@ -1,6 +1,4 @@
-import cv2
-import numpy as np
+from ultralytics import YOLO
 
-topview = cv2.imread("database/topview/topview_image.jpg")
-cv2.imshow("topview", topview)
-cv2.waitKey(0)
+model = YOLO('domainLayer/models/yolov8m.pt')
+model.export(format='onnx')

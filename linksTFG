@@ -1,0 +1,30 @@
+links tfg:
+
+YOLO ultralytics: https://github.com/ultralytics/ultralytics#models
+YOLO training: https://stackoverflow.com/questions/76565802/re-training-a-pre-trained-yolo-model
+Introduction to YOLO: https://www.section.io/engineering-education/introduction-to-yolo-algorithm-for-object-detection/
+
+What is YOLO: https://www.baeldung.com/cs/yolo-algorithm
+COCO dataset: https://cocodataset.org/#home
+YOLO explanation: https://medium.com/analytics-vidhya/yolo-explained-5b6f4564f31
+
+person detection image: https://huggingface.co/blog/object-detection-leaderboard
+
+backbone y head: https://medium.com/@shroffmegha6695/know-your-neural-network-architecture-more-by-understanding-these-terms-67faf4ea0efb
+
+mejoras backbone y head de yolov8: https://medium.com/@muhammadshabrozshahab/yolo-v8-104f1375242c
+
+-------------------------------------------------------------------------
+
+poligono convexo: https://pythongeeks.org/draw-polylines-fillpoly-fillconvexpoly-and-arrowedline-in-opencv/
+
+-------------------------------------------------------------------------
+
+3d cnn models comparison: https://github.com/okankop/Efficient-3DCNNs
+R(2+1)D explanation: https://serp.ai/r21d/
+
+gradient vanishing: https://es.wikipedia.org/wiki/Problema_de_desvanecimiento_de_gradiente
+		    https://towardsdatascience.com/understanding-and-visualizing-resnets-442284831be8
+		    https://mlearninglab.com/2018/05/06/problema-de-desvanecimiento-del-gradiente-vanishing-gradient-problem/
+		    
+
