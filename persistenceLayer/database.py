@@ -73,19 +73,27 @@ def storeStatistics(statisticsDict):
                     cv2.imwrite(str(pathForScenes / f"scene{i}/firstFrame.png"), firstFrame)
                     break
             
-
-
-    # statisticsDict to json
-    numericalStatistics = {
-        "Team1" : {
-            "FGA" : statisticsDict["Team1"]["FGA"],
-            "3PA" : statisticsDict["Team1"]["3PA"],
-        },
-        "Team2" : {
-            "FGA" : statisticsDict["Team2"]["FGA"],
-            "3PA" : statisticsDict["Team2"]["3PA"],
+    # check if there is attribute "Team2" in statisticsDict
+    if "Team2" in statisticsDict:
+        # statisticsDict to json
+        numericalStatistics = {
+            "Team1" : {
+                "FGA" : statisticsDict["Team1"]["FGA"],
+                "3PA" : statisticsDict["Team1"]["3PA"],
+            },
+            "Team2" : {
+                "FGA" : statisticsDict["Team2"]["FGA"],
+                "3PA" : statisticsDict["Team2"]["3PA"],
+            }
         }
-    }
+    
+    else:
+        numericalStatistics = {
+            "Team1" : {
+                "FGA" : statisticsDict["Team1"]["FGA"],
+                "3PA" : statisticsDict["Team1"]["3PA"],
+            }
+        }
 
     # store statisticsDict
     pathForStatistics = databasePath / "games"
@@ -103,11 +111,13 @@ def storeStatistics(statisticsDict):
             f.write(jsonStatistics)
         # Store heatmaps and shot track
         cv2.imwrite(str(pathForStatistics / "game0/Team1MotionHeatmap.png"), statisticsDict["Team1"]["MotionHeatmap"])
-        cv2.imwrite(str(pathForStatistics / "game0/Team2MotionHeatmap.png"), statisticsDict["Team2"]["MotionHeatmap"])
         cv2.imwrite(str(pathForStatistics / "game0/Team1ShotHeatmap.png"), statisticsDict["Team1"]["ShotHeatmap"])
-        cv2.imwrite(str(pathForStatistics / "game0/Team2ShotHeatmap.png"), statisticsDict["Team2"]["ShotHeatmap"])
         cv2.imwrite(str(pathForStatistics / "game0/Team1ShotTrack.png"), statisticsDict["Team1"]["ShotTrack"])
-        cv2.imwrite(str(pathForStatistics / "game0/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
+        
+        if "Team2" in statisticsDict:
+            cv2.imwrite(str(pathForStatistics / "game0/Team2MotionHeatmap.png"), statisticsDict["Team2"]["MotionHeatmap"])
+            cv2.imwrite(str(pathForStatistics / "game0/Team2ShotHeatmap.png"), statisticsDict["Team2"]["ShotHeatmap"])
+            cv2.imwrite(str(pathForStatistics / "game0/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
 
     else:
         for i in range(1, gameNumber + 1, 1):
@@ -118,11 +128,13 @@ def storeStatistics(statisticsDict):
                     f.write(jsonStatistics)
                 # Store heatmaps and shot track
                 cv2.imwrite(str(pathForStatistics / f"game{i}/Team1MotionHeatmap.png"), statisticsDict["Team1"]["MotionHeatmap"])
-                cv2.imwrite(str(pathForStatistics / f"game{i}/Team2MotionHeatmap.png"), statisticsDict["Team2"]["MotionHeatmap"])
                 cv2.imwrite(str(pathForStatistics / f"game{i}/Team1ShotHeatmap.png"), statisticsDict["Team1"]["ShotHeatmap"])
-                cv2.imwrite(str(pathForStatistics / f"game{i}/Team2ShotHeatmap.png"), statisticsDict["Team2"]["ShotHeatmap"])
                 cv2.imwrite(str(pathForStatistics / f"game{i}/Team1ShotTrack.png"), statisticsDict["Team1"]["ShotTrack"])
-                cv2.imwrite(str(pathForStatistics / f"game{i}/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
+                
+                if "Team2" in statisticsDict:
+                    cv2.imwrite(str(pathForStatistics / f"game{i}/Team2MotionHeatmap.png"), statisticsDict["Team2"]["MotionHeatmap"])
+                    cv2.imwrite(str(pathForStatistics / f"game{i}/Team2ShotHeatmap.png"), statisticsDict["Team2"]["ShotHeatmap"])
+                    cv2.imwrite(str(pathForStatistics / f"game{i}/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
 
                 break
     

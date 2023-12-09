@@ -94,10 +94,17 @@ def executeStatisticsGeneration(args):
     actionAnalyzer = ActionAnalysis(topviewImage=topviewImg)
     statisticsGenerator = StatisticsGenerator(topviewImage=topviewImg)
 
-    team1Img = cv2.imread(args.get("team1Path"))
-    team2Img = cv2.imread(args.get("team2Path"))
+    if args.get("team1Path") is not None and args.get("team2Path") is not None:
+        team1Img = cv2.imread(args.get("team1Path"))
+        team2Img = cv2.imread(args.get("team2Path"))
 
-    teams = Teams(team1Img, team2Img, 6)                                # CREATE TEAMS OBJECT, WHICH CONTAINS DATA ABOUT BOTH TEAMS 
+        teams = Teams(team1Img, team2Img, 6)                                # CREATE TEAMS OBJECT, WHICH CONTAINS DATA ABOUT BOTH TEAMS
+        statisticsGenerator.setNTeams(2)
+
+    else:
+        teams = None
+        statisticsGenerator.setNTeams(0)
+    
 
     video = cv2.VideoCapture(args.get("videoPath"))                     # READ VIDEO
 
@@ -155,7 +162,11 @@ def executeStatisticsGeneration(args):
         for box, identity, cls in zip(boxes, ids, classes):         # DRAW BOUNDING BOXES WITH ID AND ACTION
             if playerTracker.getClassName(cls) == "person":
                 crop = frame[box[1]:box[3], box[0]:box[2]]              # CROP PLAYER FROM FRAME FOR TEAM ASSOCIATION
-                association = teams.associate(crop)                     # ASSOCIATE PLAYER WITH A TEAM
+                
+                association = -1
+                if teams is not None:
+                    association = teams.associate(crop)                     # ASSOCIATE PLAYER WITH A TEAM
+                
                 frame = drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, actions[identity]) 
 
                 floorPoint = ((box[0] + box[2]) / 2, box[3])

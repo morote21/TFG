@@ -32,6 +32,7 @@ def generateShotTrack(tracks, topview):
 
 class StatisticsGenerator:
     def __init__(self, topviewImage):
+        self.nTeams = -1
         self.topview = topviewImage
         self.movementHeatmapTeam1 = np.zeros(self.topview.shape)
         self.movementHeatmapTeam2 = np.zeros(self.topview.shape)
@@ -49,14 +50,14 @@ class StatisticsGenerator:
         for y in range(pos[1]-radius, pos[1]+radius):
             for x in range(pos[0]-radius, pos[0]+radius):
                 if pixelInsideCircle(self.topview.shape, x, y, pos, radius):
-                    if team == 0:
+                    if team == 0 or team == -1:
                         self.movementHeatmapTeam1[y][x] += 5
                     else:
                         self.movementHeatmapTeam2[y][x] += 5
 
 
     def storeShot(self, pos, team, value):
-        if team == 0:
+        if team == 0 or team == -1:
             self.shotTrackTeam1[pos[1]][pos[0]] += 1
             if value == 2:
                 self.FGAteam1 += 1
@@ -84,21 +85,41 @@ class StatisticsGenerator:
         cv2.waitKey(0)
     
     def getStatistics(self):
-        statisticsDict = {
-            "Team1" : {
-                "FGA" : self.FGAteam1,
-                "3PA" : self.threePAteam1,
-                "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam1, self.topview),
-                "ShotHeatmap" : generateHeatMap(self.shotTrackTeam1, self.topview),
-                "ShotTrack" : generateShotTrack(self.shotTrackTeam1, self.topview)
-            },
-            "Team2" : {
-                "FGA" : self.FGAteam2,
-                "3PA" : self.threePAteam2,
-                "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam2, self.topview),
-                "ShotHeatmap" : generateHeatMap(self.shotTrackTeam2, self.topview),
-                "ShotTrack" : generateShotTrack(self.shotTrackTeam2, self.topview)
+        if self.nTeams == -1:
+            print("ERROR: not number of teams setted")
+            return None
+        
+        elif self.nTeams == 0:
+            statisticsDict = {
+                "Team1" : {
+                    "FGA" : self.FGAteam1,
+                    "3PA" : self.threePAteam1,
+                    "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam1, self.topview),
+                    "ShotHeatmap" : generateHeatMap(self.shotTrackTeam1, self.topview),
+                    "ShotTrack" : generateShotTrack(self.shotTrackTeam1, self.topview)
+                }
             }
-        }
+
+        elif self.nTeams == 2:      
+            statisticsDict = {
+                "Team1" : {
+                    "FGA" : self.FGAteam1,
+                    "3PA" : self.threePAteam1,
+                    "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam1, self.topview),
+                    "ShotHeatmap" : generateHeatMap(self.shotTrackTeam1, self.topview),
+                    "ShotTrack" : generateShotTrack(self.shotTrackTeam1, self.topview)
+                },
+                "Team2" : {
+                    "FGA" : self.FGAteam2,
+                    "3PA" : self.threePAteam2,
+                    "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam2, self.topview),
+                    "ShotHeatmap" : generateHeatMap(self.shotTrackTeam2, self.topview),
+                    "ShotTrack" : generateShotTrack(self.shotTrackTeam2, self.topview)
+                }
+            }
 
         return statisticsDict
+
+
+    def setNTeams(self, nTeams):
+        self.nTeams = nTeams

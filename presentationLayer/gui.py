@@ -8,6 +8,14 @@ import cv2
 import sys
 from domainLayer.main import executeStatisticsGeneration
 from pathlib import Path
+import json
+
+def clearLayout(layout):
+    while layout.count():
+        child = layout.takeAt(0)
+        if child.widget():
+            child.widget().deleteLater()
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -365,8 +373,19 @@ class MainWindow(QMainWindow):
 
         statisticsViewerLayout.addWidget(scrollArea)
 
-        numericalStats = QLabel("Team stats")
-        self.vertStatisticsLayout.addWidget(numericalStats)
+        self.horizontalStatsLayout = QHBoxLayout()
+        self.vertStatisticsLayout.addLayout(self.horizontalStatsLayout)
+
+        self.team1statsLayout = QVBoxLayout()
+        self.horizontalStatsLayout.addLayout(self.team1statsLayout)
+
+        self.team2statsLayout = QVBoxLayout()
+        self.horizontalStatsLayout.addLayout(self.team2statsLayout)
+
+        self.statisticsToShow = False
+
+        #numericalStats = QLabel("Team stats")
+        #self.vertStatisticsLayout.addWidget(numericalStats)
 
 
 
@@ -386,6 +405,11 @@ class MainWindow(QMainWindow):
         self.listWidget.itemDoubleClicked.connect(self.statisticsSelection)
     
     def statisticsSelection(self, item):
+
+        clearLayout(self.gridStatisticsLayout)
+        clearLayout(self.team1statsLayout)
+        clearLayout(self.team2statsLayout)
+
         # print path of item
         statisticsPath = Path(item.text())
         self.statisticsSelected = str(statisticsPath)
@@ -398,42 +422,88 @@ class MainWindow(QMainWindow):
         temporalGrid = QGridLayout()
         # iterate through images in statisticsPath and add them to the grid, taking into account that not all of the elemnts in the path are images
         statisticsImages = [statisticsImage for statisticsImage in statisticsPath.iterdir() if statisticsImage.suffix == ".png"]
-        for statisticsImage in statisticsImages:
-            if statisticsImage.name == "Team1ShotTrack.png":
-                pixmap = QPixmap(str(statisticsImage))
-                label = QLabel()
-                label.setPixmap(pixmap)
-                self.gridStatisticsLayout.addWidget(label, 0, 0)
+        
+        # read json in statisticsPath
+        jsonStatisticsPath = statisticsPath / "statistics.json"
+        statisticsDict = None
+        with open(jsonStatisticsPath) as f:
+            statisticsDict = json.load(f)
 
-            elif statisticsImage.name == "Team2ShotTrack.png":
-                pixmap = QPixmap(str(statisticsImage))
-                label = QLabel()
-                label.setPixmap(pixmap)
-                self.gridStatisticsLayout.addWidget(label, 0, 1)
 
-            elif statisticsImage.name == "Team1MotionHeatmap.png":
-                pixmap = QPixmap(str(statisticsImage))
-                label = QLabel()
-                label.setPixmap(pixmap)
-                self.gridStatisticsLayout.addWidget(label, 1, 0)
+        if len(statisticsImages) == 6:    
+            for statisticsImage in statisticsImages:
+                if statisticsImage.name == "Team1ShotTrack.png":
+                    pixmap = QPixmap(str(statisticsImage))
+                    label = QLabel()
+                    label.setPixmap(pixmap)
+                    self.gridStatisticsLayout.addWidget(label, 0, 0)
+
+                elif statisticsImage.name == "Team2ShotTrack.png":
+                    pixmap = QPixmap(str(statisticsImage))
+                    label = QLabel()
+                    label.setPixmap(pixmap)
+                    self.gridStatisticsLayout.addWidget(label, 0, 1)
+
+                elif statisticsImage.name == "Team1MotionHeatmap.png":
+                    pixmap = QPixmap(str(statisticsImage))
+                    label = QLabel()
+                    label.setPixmap(pixmap)
+                    self.gridStatisticsLayout.addWidget(label, 1, 0)
+                
+                elif statisticsImage.name == "Team2MotionHeatmap.png":
+                    pixmap = QPixmap(str(statisticsImage))
+                    label = QLabel()
+                    label.setPixmap(pixmap)
+                    self.gridStatisticsLayout.addWidget(label, 1, 1)
+
+                elif statisticsImage.name == "Team1ShotHeatmap.png":
+                    pixmap = QPixmap(str(statisticsImage))
+                    label = QLabel()
+                    label.setPixmap(pixmap)
+                    self.gridStatisticsLayout.addWidget(label, 2, 0)
+                
+                elif statisticsImage.name == "Team2ShotHeatmap.png":
+                    pixmap = QPixmap(str(statisticsImage))
+                    label = QLabel()
+                    label.setPixmap(pixmap)
+                    self.gridStatisticsLayout.addWidget(label, 2, 1)
             
-            elif statisticsImage.name == "Team2MotionHeatmap.png":
-                pixmap = QPixmap(str(statisticsImage))
-                label = QLabel()
-                label.setPixmap(pixmap)
-                self.gridStatisticsLayout.addWidget(label, 1, 1)
+            # vertical layout for numerical statistics team 1
+            self.team1statsLayout.addWidget(QLabel("Stats Team 1:"))
+            self.team1statsLayout.addWidget(QLabel("FGA: " + str(statisticsDict["Team1"]["FGA"])))
+            self.team1statsLayout.addWidget(QLabel("3PA: " + str(statisticsDict["Team1"]["3PA"])))
 
-            elif statisticsImage.name == "Team1ShotHeatmap.png":
-                pixmap = QPixmap(str(statisticsImage))
-                label = QLabel()
-                label.setPixmap(pixmap)
-                self.gridStatisticsLayout.addWidget(label, 2, 0)
+            # vertical layout for numerical statistics team 2
+            self.team2statsLayout.addWidget(QLabel("Stats Team 2:"))
+            self.team2statsLayout.addWidget(QLabel("FGA: " + str(statisticsDict["Team2"]["FGA"])))
+            self.team2statsLayout.addWidget(QLabel("3PA: " + str(statisticsDict["Team2"]["3PA"])))
+
+
+        elif len(statisticsImages) == 3:
+            for statisticsImage in statisticsImages:
+                if statisticsImage.name == "Team1ShotTrack.png":
+                    pixmap = QPixmap(str(statisticsImage))
+                    label = QLabel()
+                    label.setPixmap(pixmap)
+                    self.gridStatisticsLayout.addWidget(label, 0, 0)
+
+                elif statisticsImage.name == "Team1MotionHeatmap.png":
+                    pixmap = QPixmap(str(statisticsImage))
+                    label = QLabel()
+                    label.setPixmap(pixmap)
+                    self.gridStatisticsLayout.addWidget(label, 1, 0)
+                
+                elif statisticsImage.name == "Team1ShotHeatmap.png":
+                    pixmap = QPixmap(str(statisticsImage))
+                    label = QLabel()
+                    label.setPixmap(pixmap)
+                    self.gridStatisticsLayout.addWidget(label, 2, 0)
             
-            elif statisticsImage.name == "Team2ShotHeatmap.png":
-                pixmap = QPixmap(str(statisticsImage))
-                label = QLabel()
-                label.setPixmap(pixmap)
-                self.gridStatisticsLayout.addWidget(label, 2, 1)
+            # vertical layout for numerical statistics team 1
+            self.team1statsLayout.addWidget(QLabel("Stats Team 1:"))
+            self.team1statsLayout.addWidget(QLabel("FGA: " + str(statisticsDict["Team1"]["FGA"])))
+            self.team1statsLayout.addWidget(QLabel("3PA: " + str(statisticsDict["Team1"]["3PA"])))
+
 
         self.statisticsToShow = True
 

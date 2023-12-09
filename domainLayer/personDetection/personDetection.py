@@ -9,11 +9,13 @@ def drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, act
     # value = segmentedCourt[floorPoint[1]][floorPoint[0]]
     value = 1
     if value:
-        if association:
+        if association == 0:
             cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
-        else:
+        elif association == 1:
             cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 1)
-        
+        else:
+            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 1)
+
         cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
         cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
         cv2.circle(frame, floorPoint, 3, (255, 0, 0), 2)
