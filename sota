@@ -1,0 +1,5 @@
+state-of-the-art object detection models:
+	one stage:
+		- YOLO
+		- SSD
+		- RetinaNet 
