@@ -16,6 +16,25 @@ MODEL_PATH = "/home/morote/Desktop/TFG/domainLayer/models/model_checkpoints/r2pl
 SIZE_OF_ACTION_QUEUE = 7
 
 
+def updateIds(dictFrames, dictPartialClassifications, dictFinalClassifications, ids):
+    setOld = set(dictFrames.keys())
+    setIds = set(ids)
+
+    if setOld != setIds:
+        for identity in setOld:
+            if identity not in setIds:
+                dictFrames.pop(identity)
+                dictPartialClassifications.pop(identity)
+                dictFinalClassifications.pop(identity)
+        
+        for identity in setIds:
+            if identity not in setOld:
+                dictFrames[identity] = []
+                dictPartialClassifications[identity] = []
+                dictFinalClassifications[identity] = "undefined"
+
+
+
 # SEGURAMENTE ESTE MAL, HACERLO A MI MANERA PERO RESPETANDO COMO SERIA LA ENTRADA DE LA RED
 def cropAction(clip, cropWindow, player=0):
 
@@ -84,30 +103,14 @@ class ActionRecognition:
         self.labels = {0 : "block", 1 : "pass", 2 : "run", 3 : "dribble", 4 : "shoot", 5 : "ball in hand", 6 : "defense", 7 : "pick" , 8 : "no_action" , 9 : "walk" , 10 : "discard"}
 
         self.playersFrames = {}                                                  # DICTIONARY TO STORE THE LAST 16 FRAMES OF EACH PLAYER
-        self.playersFrameFlag = {}                                               # DICTIONARY TO STORE WHEN WE ARE ABLE TO STORE A FRAME FOR A CERTAIN PLAYER
+        #self.playersFrameFlag = {}                                               # DICTIONARY TO STORE WHEN WE ARE ABLE TO STORE A FRAME FOR A CERTAIN PLAYER
         self.playersPartialClassifications = {}                                  # DICTIONARY TO STORE THE PARTIAL CLASSIFICATIONS OF EACH PLAYER
         self.playersFinalClassifications = {}                                    # DICTIONARY TO STORE THE FINAL CLASSIFICATION OF EACH PLAYER
 
 
     def inference(self, frame, boxes, ids, classes):
         # CHECK IF THERE ARE NEW PLAYERS OR PLAYERS THAT HAVE LEFT THE COURT OR NOT TRACKED DUE TO OCCLUSION
-        if len(ids) != len(self.playersFrames.keys()):
-            if len(self.playersFrames.keys()) < len(ids):
-                for iden in ids:
-                    # TODO: CHANGE TO NUMPY ARRAYS OF SIZE 16
-                    if iden not in list(self.playersFrames.keys()):
-                        self.playersFrames[iden] = []
-                        self.playersPartialClassifications[iden] = []
-                        self.playersFrameFlag[iden] = True
-                        self.playersFinalClassifications[iden] = "undefined"
-            
-            else:
-                for iden in list(self.playersFrames.keys()):
-                    if iden not in ids:
-                        self.playersFrames.pop(iden)
-                        self.playersFrameFlag.pop(iden)
-                        self.playersPartialClassifications.pop(iden)
-                        self.playersFinalClassifications.pop(iden)
+        updateIds(self.playersFrames, self.playersPartialClassifications, self.playersFinalClassifications, ids)
         
         # DRAW BOUNDING BOXES, ASSOCIATE PLAYERS WITH TEAMS AND PERFORM ACTION RECOGNITION FOR EACH PLAYER
         for box, identity, cls in zip(boxes, ids, classes):
@@ -115,11 +118,16 @@ class ActionRecognition:
             cropAndResize = cropPlayer(frame, box)               # CROP PLAYER FROM FRAME FOR ACTION RECOGNITION
 
             # QUEUE OF 16 FRAMES
-            if self.playersFrameFlag[identity]:
-                self.playersFrames[identity].append(cropAndResize)
-                self.playersFrameFlag[identity] = False
-            else:
-                self.playersFrameFlag[identity] = True
+            # if self.playersFrameFlag[identity]:
+            #     self.playersFrames[identity].append(cropAndResize)
+            #     self.playersFrameFlag[identity] = False
+            # else:
+            #     self.playersFrameFlag[identity] = True
+            
+            print(ids)
+            print(self.playersFrames.keys())
+
+            self.playersFrames[identity].append(cropAndResize)
 
             if len(self.playersFrames[identity]) > 16:
                     self.playersFrames[identity].pop(0)
@@ -143,6 +151,8 @@ class ActionRecognition:
                     if len(self.playersPartialClassifications[identity]) == SIZE_OF_ACTION_QUEUE:   # QUEUE OF 5 CLASSIFICATIONS
                         self.playersFinalClassifications[identity] = getMostCommonElement(self.playersPartialClassifications[identity]) # GET MOST COMMON CLASSIFICATION
                         #hasAction = True
+                    
+                    self.playersFinalClassifications[identity] = action
 
         return self.playersFinalClassifications
     

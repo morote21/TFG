@@ -161,8 +161,8 @@ def executeStatisticsGeneration(args):
         
         for box, identity, cls in zip(boxes, ids, classes):         # DRAW BOUNDING BOXES WITH ID AND ACTION
             if playerTracker.getClassName(cls) == "person":
-                crop = frame[box[1]:box[3], box[0]:box[2]]              # CROP PLAYER FROM FRAME FOR TEAM ASSOCIATION
                 
+                crop = frame[box[1]:box[3], box[0]:box[2]]              # CROP PLAYER FROM FRAME FOR TEAM ASSOCIATION
                 association = -1
                 if teams is not None:
                     association = teams.associate(crop)                     # ASSOCIATE PLAYER WITH A TEAM

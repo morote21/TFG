@@ -38,12 +38,19 @@ class Tracker:
             ids = results[0].boxes.id.cpu().numpy().astype(int)
             classes = results[0].boxes.cls
 
+            indexes = [i for i, cls in enumerate(classes) if self.getClassName(cls) == "person"]    # cambiar por el cls directo de person para no buscar en self.model.names
+
+            boxes = boxes[indexes]
+            ids = ids[indexes]
+            classes = classes[indexes]
+
+                    
+
         else:
             boxes, ids, classes = [], [], []
         # Aqui falta filtrar con el segmented court
 
         return boxes, ids, classes
 
-    def getClassName(self, id):
-        id = int(id.item())             # Convert tensor to int
-        return self.model.names[id]
+    def getClassName(self, cls):
+        return self.model.names[int(cls)]    # Convert tensor to int and get name from model
