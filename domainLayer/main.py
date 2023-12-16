@@ -24,7 +24,7 @@ TEAM_1_PLAYER = "/home/morote/Desktop/input_tfg/team1_black.png"
 TEAM_2_PLAYER = "/home/morote/Desktop/input_tfg/team2_white.png"
 TOPVIEW_POINTS = "database/topview/topview_coords.json"
 
-SIZE_OF_ACTION_QUEUE = 7
+SIZE_OF_ACTION_QUEUE = 10
 
 
 def executeStatisticsGeneration_noImshow(videoPath, team1path, team2path):
@@ -72,14 +72,10 @@ def executeStatisticsGeneration_noImshow(videoPath, team1path, team2path):
 
 
 def preprocessFrame(frame):
-    frameCpy = copy.deepcopy(frame)
-    frame_yuv = cv2.cvtColor(frameCpy, cv2.COLOR_BGR2YUV)
-
-    # equalize the histogram of the Y channel
-    frame_yuv[:, :, 0] = cv2.equalizeHist(frame_yuv[:, :, 0])
-    frame_result = cv2.cvtColor(frame_yuv, cv2.COLOR_YUV2BGR)
-
-    return frame_result
+    frame = utils.resizeFrame(frame, height=1080)                   # RESIZE FRAME TO 1080p
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)                  # CONVERT FRAME TO RGB
+    frame = cv2.GaussianBlur(frame, (3, 3), 0)
+    return frame
 
 
 
@@ -160,23 +156,23 @@ def executeStatisticsGeneration(args):
         actions = actionRecognizer.inference(frame, boxes, ids, classes)          # PERFORM ACTION RECOGNITION
         
         for box, identity, cls in zip(boxes, ids, classes):         # DRAW BOUNDING BOXES WITH ID AND ACTION
-            if playerTracker.getClassName(cls) == "person":
+            #if playerTracker.getClassName(cls) == "person":
                 
-                crop = frame[box[1]:box[3], box[0]:box[2]]              # CROP PLAYER FROM FRAME FOR TEAM ASSOCIATION
-                association = -1
-                if teams is not None:
-                    association = teams.associate(crop)                     # ASSOCIATE PLAYER WITH A TEAM
-                
-                frame = drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, actions[identity]) 
+            crop = frame[box[1]:box[3], box[0]:box[2]]              # CROP PLAYER FROM FRAME FOR TEAM ASSOCIATION
+            association = -1
+            if teams is not None:
+                association = teams.associate(crop)                     # ASSOCIATE PLAYER WITH A TEAM
+            
+            frame = drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, actions[identity]) 
 
-                floorPoint = ((box[0] + box[2]) / 2, box[3])
-                floorPointTransformed = twTransform.transformPoint(floorPoint)
-                statisticsGenerator.storeStep((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)
+            floorPoint = ((box[0] + box[2]) / 2, box[3])
+            floorPointTransformed = twTransform.transformPoint(floorPoint)
+            statisticsGenerator.storeStep((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)
 
-                if actions[identity] == "shoot" and prevActionsClassifications[identity] == "ball in hand":
-                    pos = (int(floorPointTransformed[0]), int(floorPointTransformed[1]))
-                    shotValue = actionAnalyzer.shotDetected(pos)
-                    statisticsGenerator.storeShot(pos, association, shotValue)
+            if actions[identity] == "shoot" and prevActionsClassifications[identity] == "ball in hand":
+                pos = (int(floorPointTransformed[0]), int(floorPointTransformed[1]))
+                shotValue = actionAnalyzer.shotDetected(pos)
+                statisticsGenerator.storeShot(pos, association, shotValue)
 
         prevActionsClassifications = copy.deepcopy(actions)
         

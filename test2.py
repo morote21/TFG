@@ -13,10 +13,10 @@ def resizeFrame(frame, height=1080):
 
 
 
-VIDEO_PATH = "/home/morote/Desktop/input_tfg/nba2k_test.mp4"
+VIDEO_PATH = "/home/morote/Desktop/input_tfg/20231215_131239_Trim.mp4"
 
 model = YOLO('domainLayer/models/all_detections_model.pt')
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-model.predict(source=VIDEO_PATH, save=True)
+model.predict(source=VIDEO_PATH, save=True, device=0)

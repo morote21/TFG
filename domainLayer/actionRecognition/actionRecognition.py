@@ -13,7 +13,7 @@ from torchvision.models.video import R2Plus1D_18_Weights
 from domainLayer.utils import load_weights, getMostCommonElement
 
 MODEL_PATH = "/home/morote/Desktop/TFG/domainLayer/models/model_checkpoints/r2plus1d_augmented-3/r2plus1d_multiclass_12_0.0001.pt"
-SIZE_OF_ACTION_QUEUE = 7
+SIZE_OF_ACTION_QUEUE = 5
 
 
 def updateIds(dictFrames, dictPartialClassifications, dictFinalClassifications, ids):
@@ -32,6 +32,7 @@ def updateIds(dictFrames, dictPartialClassifications, dictFinalClassifications, 
                 dictFrames[identity] = []
                 dictPartialClassifications[identity] = []
                 dictFinalClassifications[identity] = "undefined"
+
 
 
 
@@ -124,8 +125,6 @@ class ActionRecognition:
             # else:
             #     self.playersFrameFlag[identity] = True
             
-            print(ids)
-            print(self.playersFrames.keys())
 
             self.playersFrames[identity].append(cropAndResize)
 
@@ -149,9 +148,13 @@ class ActionRecognition:
                         self.playersPartialClassifications[identity].pop(0)
 
                     if len(self.playersPartialClassifications[identity]) == SIZE_OF_ACTION_QUEUE:   # QUEUE OF 5 CLASSIFICATIONS
-                        self.playersFinalClassifications[identity] = getMostCommonElement(self.playersPartialClassifications[identity]) # GET MOST COMMON CLASSIFICATION
+                        if len(set(self.playersPartialClassifications[identity])) == 1:
+                            action = self.playersPartialClassifications[identity][0]
+                        #self.playersFinalClassifications[identity] = getMostCommonElement(self.playersPartialClassifications[identity]) # GET MOST COMMON CLASSIFICATION
                         #hasAction = True
-                    
+                    else:
+                        action = "undefined"
+
                     self.playersFinalClassifications[identity] = action
 
         return self.playersFinalClassifications

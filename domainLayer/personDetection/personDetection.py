@@ -32,7 +32,7 @@ class Tracker:
         self.model = YOLO("./domainLayer/models/yolov8m.pt")
 
     def trackPlayers(self, frame):
-        results = self.model.track(source=frame, show=False, save=False, persist=True, tracker="bytetrack.yaml", conf=0.3)
+        results = self.model.track(source=frame, show=False, save=False, persist=True, tracker="bytetrack.yaml", conf=0.3, device=0)
         if results and len(results) > 0 and results[0].boxes is not None and results[0].boxes.id is not None:
             boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
             ids = results[0].boxes.id.cpu().numpy().astype(int)
