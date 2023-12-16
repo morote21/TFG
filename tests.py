@@ -9,6 +9,12 @@ PERSON = 2
 BALL = 0
 RIM = 3
 
+# preprocess frame
+def preprocess(frame):
+    frame = utils.resizeFrame(frame, height=1080)
+    return frame
+
+
 
 def getRimCoords(image):
     def clickEvent(event, x, y, flags, param):        
@@ -34,11 +40,45 @@ def getRimCoords(image):
     return np.array(coords)
 
 
+def checkBallPresence(backboardCrop, model, dictBackboard, last_square):
+    results = model.predict(backboardCrop, device=0, conf=0.3, show=False, save=False)
+    boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
+    classes = results[0].boxes.cls.cpu().numpy().astype(int)
+    
+    ball_center = np.array([0, 0]).astype('float64')
+    ball_count = 0
+
+
+    for i, box in enumerate(boxes):
+        if classes[i] == BALL:
+            ball_center = np.array([box[0] + box[2], box[1] + box[3]]) / 2.0
+            ball_count += 1
+
+            if dictBackboard["center"][0] < ball_center[0] < dictBackboard["center"][2] and dictBackboard["center"][1] < ball_center[1] < dictBackboard["center"][3]:
+                return "center"
+            elif dictBackboard["above"][0] < ball_center[0] < dictBackboard["above"][2] and dictBackboard["above"][1] < ball_center[1] < dictBackboard["above"][3]:
+                return "above"
+            elif dictBackboard["left"][0] < ball_center[0] < dictBackboard["left"][2] and dictBackboard["left"][1] < ball_center[1] < dictBackboard["left"][3]:
+                return "left"
+            elif dictBackboard["right"][0] < ball_center[0] < dictBackboard["right"][2] and dictBackboard["right"][1] < ball_center[1] < dictBackboard["right"][3]:
+                return "right"
+            
+    return last_square
+    # # draw boxes
+    # for i, box in enumerate(boxes):
+    #     if classes[i] == BALL:
+    #         cv2.rectangle(backboardCrop, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 1)
+    
+
+        
+    
+
+
 
 OFFICIAL_RIM_DIAMETER = 46
 OFFICIAL_BALL_DIAMETER = 24
 
-VIDEO_PATH = "/home/morote/Desktop/input_tfg/shoot_test_2.mp4"
+VIDEO_PATH = "/home/morote/Desktop/input_tfg/20231215_131239_Trim.mp4"
 video = cv2.VideoCapture(VIDEO_PATH)
 fps = video.get(cv2.CAP_PROP_FPS)
 frameDelay = int(1000 / fps)
@@ -98,7 +138,8 @@ while True:
     if not ret:
         break
 
-    frame = utils.resizeFrame(frame, height=1080)
+    #frame = utils.resizeFrame(frame, height=1080)
+    frame = preprocess(frame)
     sceneCopy = copy.deepcopy(frame)
 
     # make predictions
@@ -107,12 +148,15 @@ while True:
     boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
     classes = results[0].boxes.cls.cpu().numpy().astype(int)
     
+    backboardCrop = sceneCopy[aboveTop - int(rimDiameter/4):centerBottom + int(rimDiameter/4), leftLeft - int(rimDiameter/4):rightRight + int(rimDiameter/4)]
+    #cv2.imshow("backboard crop", backboardCrop)
+
     # draw boxes
     for i, box in enumerate(boxes):
         if classes[i] == PERSON:
-            cv2.rectangle(sceneCopy, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
+            cv2.rectangle(sceneCopy, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
         elif classes[i] == BALL:
-            cv2.rectangle(sceneCopy, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 1)
+            cv2.rectangle(sceneCopy, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 2)
         elif classes[i] == RIM:
             cv2.rectangle(sceneCopy, (box[0], box[1]), (box[2], box[3]), (255, 0, 0), 1)
 
@@ -125,18 +169,13 @@ while True:
             ballCenter += np.array([box[0] + box[2], box[1] + box[3]]) / 2.0
             ballCount += 1
     
-
-    if centerLeft < ballCenter[0] < centerRight and centerTop < ballCenter[1] < centerBottom:
-        last_square = "center"
     
-    elif aboveLeft < ballCenter[0] < aboveRight and aboveTop < ballCenter[1] < aboveBottom:
-        last_square = "above"
+    dictBackboard = {"center": (centerLeft-leftLeft, centerTop-aboveTop, centerRight-leftLeft, centerBottom-aboveTop),
+                     "above": (aboveLeft-leftLeft, aboveTop-aboveTop, aboveRight-leftLeft, aboveBottom-aboveTop),
+                     "left": (leftLeft-leftLeft, leftTop-aboveTop, leftRight-leftLeft, leftBottom-aboveTop),
+                     "right": (rightLeft-leftLeft, rightTop-aboveTop, rightRight-leftLeft, rightBottom-aboveTop)}
     
-    elif leftLeft < ballCenter[0] < leftRight and leftTop < ballCenter[1] < leftBottom:
-        last_square = "left"
-    
-    elif rightLeft < ballCenter[0] < rightRight and rightTop < ballCenter[1] < rightBottom:
-        last_square = "right"
+    last_square = checkBallPresence(backboardCrop, model, dictBackboard, last_square)
 
     
     if ballCenter[1] > belowBottom:
@@ -180,8 +219,7 @@ while True:
     cv2.putText(sceneCopy, str(shots_made), (350, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
 
     
-
-
+    cv2.imshow("backboard crop", backboardCrop)
     cv2.imshow("scene", sceneCopy)
     if cv2.waitKey(frameDelay) == 27:
         break
