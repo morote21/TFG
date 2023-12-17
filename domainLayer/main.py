@@ -16,6 +16,7 @@ from domainLayer.statisticsGeneration.statisticsGeneration import StatisticsGene
 from persistenceLayer.database import storeStatistics, readTopviewPoints, readScenePoints
 import json
 from pathlib import Path
+from domainLayer.madeShotDetection.madeShotDetection import ShotMadeDetector
 
 # VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
 VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
@@ -26,6 +27,7 @@ TOPVIEW_POINTS = "database/topview/topview_coords.json"
 
 SIZE_OF_ACTION_QUEUE = 10
 
+BLUE = (255, 0, 0)
 
 def executeStatisticsGeneration_noImshow(videoPath, team1path, team2path):
     videoFrames = []
@@ -73,8 +75,6 @@ def executeStatisticsGeneration_noImshow(videoPath, team1path, team2path):
 
 def preprocessFrame(frame):
     frame = utils.resizeFrame(frame, height=1080)                   # RESIZE FRAME TO 1080p
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)                  # CONVERT FRAME TO RGB
-    frame = cv2.GaussianBlur(frame, (3, 3), 0)
     return frame
 
 
@@ -120,14 +120,12 @@ def executeStatisticsGeneration(args):
     # if the scene is new, get the borders of the court and the topview image side from the user input
     if args.get("scenePointsPath") is None:
         scenePoints = utils.getBorders(sceneCpy)
+        rimPoints = utils.getRim(sceneCpy)
         topviewPoints = readTopviewPoints(args.get("courtSide"))
     # if the scene is already used, get the borders of the court from the scenePoints.json file
     else:
-        scenePoints, courtSide = readScenePoints(args.get("scenePointsPath"))
+        scenePoints, rimPoints, courtSide = readScenePoints(args.get("scenePointsPath"))
         topviewPoints = readTopviewPoints(courtSide)
-
-    print(topviewPoints)
-    print(scenePoints)
 
 
     twTransform = Topview()
@@ -139,8 +137,11 @@ def executeStatisticsGeneration(args):
 
     playerTracker = Tracker()                                           # INITIALIZE TRACKER OBJECT            
     actionRecognizer = ar.ActionRecognition()                           # INITIALIZE ACTION RECOGNITION OBJECT
+    madeShotDetector = ShotMadeDetector(rimPoints)
 
     prevActionsClassifications = {}                                     # DICTIONARY TO STORE THE PREVIOUS CLASSIFICATIONS OF EACH PLAYER
+
+    shotsMade = 0
 
     while True:
         ret, frame = video.read()
@@ -151,9 +152,16 @@ def executeStatisticsGeneration(args):
         frame = utils.resizeFrame(frame, height=1080)                   # RESIZE FRAME TO 1080p
         #frame = preprocessFrame(frame)                                  # PREPROCESS FRAME 
 
+        frameToDraw = copy.deepcopy(frame)
+
         boxes, ids, classes = playerTracker.trackPlayers(frame=frame)   # TRACK PLAYERS IN FRAME
 
         actions = actionRecognizer.inference(frame, boxes, ids, classes)          # PERFORM ACTION RECOGNITION
+
+        made = madeShotDetector.inference(frame, frameToDraw)
+
+        if made:
+            shotsMade += 1
         
         for box, identity, cls in zip(boxes, ids, classes):         # DRAW BOUNDING BOXES WITH ID AND ACTION
             #if playerTracker.getClassName(cls) == "person":
@@ -163,7 +171,7 @@ def executeStatisticsGeneration(args):
             if teams is not None:
                 association = teams.associate(crop)                     # ASSOCIATE PLAYER WITH A TEAM
             
-            frame = drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, actions[identity]) 
+            frameToDraw = drawBoundingBoxPlayer(frameToDraw, box, identity, segmentedCourt, association, actions[identity]) 
 
             floorPoint = ((box[0] + box[2]) / 2, box[3])
             floorPointTransformed = twTransform.transformPoint(floorPoint)
@@ -185,8 +193,10 @@ def executeStatisticsGeneration(args):
             cv2.circle(topviewImageCpy, (int(floorPointTransformed[0]), int(floorPointTransformed[1])), 3,
                        (0, 255, 0), 2)
 
+        cv2.putText(frameToDraw, "shots made: ", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+        cv2.putText(frameToDraw, str(shotsMade), (350, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
 
-        cv2.imshow("frame", frame)
+        cv2.imshow("frame", frameToDraw)
         cv2.imshow("topview", topviewImageCpy)
         key = cv2.waitKey(1)
         if key == 27:
@@ -200,11 +210,13 @@ def executeStatisticsGeneration(args):
     statisticsDict["firstFrame"] = None
     statisticsDict["scenePoints"] = None        # None if scene already exists, else create new scene with scenePoints
     statisticsDict["courtSide"] = None
+    statisticsDict["rimPoints"] = None
 
     if args.get("scenePointsPath") is None:
         statisticsDict["firstFrame"] = firstFrame
         statisticsDict["scenePoints"] = twTransform.getSceneIntersections().tolist()
         statisticsDict["courtSide"] = args.get("courtSide")
+        statisticsDict["rimPoints"] = rimPoints.tolist()
 
     storeStatistics(statisticsDict)
 

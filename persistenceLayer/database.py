@@ -45,6 +45,14 @@ def storeStatistics(statisticsDict):
                 # corner right side of basket
                 "x": scenePoints[3][0],
                 "y": scenePoints[3][1]
+            },
+            "rimX": {
+                "x": statisticsDict["rimPoints"][0][0],
+                "y": statisticsDict["rimPoints"][0][1]
+            },
+            "rimY": {
+                "x": statisticsDict["rimPoints"][1][0],
+                "y": statisticsDict["rimPoints"][1][1]
             }
         }
 
@@ -164,6 +172,7 @@ def readTopviewPoints(side):
 
 def readScenePoints(scenePath):
     scenePoints = []
+    rimPoints = []
     path = Path(scenePath) / "scenePoints.json"
     side = None
     with open(path, "r") as f:
@@ -174,7 +183,10 @@ def readScenePoints(scenePath):
         scenePoints.append((scenePointsJson["2"]["x"], scenePointsJson["2"]["y"]))
         scenePoints.append((scenePointsJson["3"]["x"], scenePointsJson["3"]["y"]))
 
-    return np.array(scenePoints, np.int32), scenePointsJson["courtSide"]
+        rimPoints.append((scenePointsJson["rimX"]["x"], scenePointsJson["rimX"]["y"]))
+        rimPoints.append((scenePointsJson["rimY"]["x"], scenePointsJson["rimY"]["y"]))
+
+    return np.array(scenePoints, np.int16), np.array(rimPoints, np.int16), scenePointsJson["courtSide"]
 
 
 

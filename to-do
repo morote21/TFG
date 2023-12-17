@@ -80,6 +80,7 @@ TO-DO desde dic 15:
 - combinar deteccion de tiro de la yolo y reconocimiento de tiro del r2plus1d para la inferencia
 - documentacion
 - incluir coordenadas de aro en la base de datos de cada escena
+- dividir entre frame donde pintar y frame donde se hacen las inferencias 
 
 
 

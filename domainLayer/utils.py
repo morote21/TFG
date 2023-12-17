@@ -38,6 +38,36 @@ def getBorders(image):
     return np.array(borders)
 
 
+def getRim(image):
+    """
+    Gets the position of the rim in the image
+    :param image: image to get rim position from
+    :return: position of the rim in the image
+    """
+
+    def clickEvent(event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_LBUTTONUP:
+            param.append((x, y))
+
+    coords = []
+    cv2.namedWindow("rim coords")
+    cv2.setMouseCallback("rim coords", clickEvent, param=coords)
+
+    while 1:
+        cv2.imshow("rim coords", image)
+        if len(coords) == 2:
+            cv2.destroyAllWindows()
+            break
+
+        k = cv2.waitKey(20) & 0xFF
+        if k == 27:
+            break
+
+    cv2.destroyAllWindows()
+
+    return np.array(coords)
+
+
 def load_weights(model, modelPath, baseModelName, startEpoch, lr):
     """
     Loads previously trained weights into a model given an epoch and the model itself
