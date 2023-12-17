@@ -75,12 +75,12 @@ TO-DO desde dic 15:
 - grabar nuevos videos a 2k 60 fps
 - ver como resulta algun preprocesado con los frames de videos fullhd - done
 - cambiar la inferencia de la accion a n acciones seguidas entonces es accion final (n puede ser cualquier numero) - done
-- implementar nuevo modelo de yolo con el reconocimiento de pelota y tiro
-- deteccion de canasta encestada - done (en un script, falta mejorar)
+- implementar nuevo modelo de yolo con el reconocimiento de pelota y tiro - done
+- deteccion de canasta encestada - done 
 - combinar deteccion de tiro de la yolo y reconocimiento de tiro del r2plus1d para la inferencia
 - documentacion
-- incluir coordenadas de aro en la base de datos de cada escena
-- dividir entre frame donde pintar y frame donde se hacen las inferencias 
+- incluir coordenadas de aro en la base de datos de cada escena - done
+- dividir entre frame donde pintar y frame donde se hacen las inferencias - done
 
 
 
