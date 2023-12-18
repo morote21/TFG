@@ -88,10 +88,14 @@ def storeStatistics(statisticsDict):
             "Team1" : {
                 "FGA" : statisticsDict["Team1"]["FGA"],
                 "3PA" : statisticsDict["Team1"]["3PA"],
+                "FGM" : statisticsDict["Team1"]["FGM"],
+                "3PM" : statisticsDict["Team1"]["3PM"],
             },
             "Team2" : {
                 "FGA" : statisticsDict["Team2"]["FGA"],
                 "3PA" : statisticsDict["Team2"]["3PA"],
+                "FGM" : statisticsDict["Team2"]["FGM"],
+                "3PM" : statisticsDict["Team2"]["3PM"],
             }
         }
     
@@ -100,6 +104,8 @@ def storeStatistics(statisticsDict):
             "Team1" : {
                 "FGA" : statisticsDict["Team1"]["FGA"],
                 "3PA" : statisticsDict["Team1"]["3PA"],
+                "FGM" : statisticsDict["Team1"]["FGM"],
+                "3PM" : statisticsDict["Team1"]["3PM"],
             }
         }
 

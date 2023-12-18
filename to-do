@@ -83,16 +83,8 @@ TO-DO desde dic 15:
 - dividir entre frame donde pintar y frame donde se hacen las inferencias - done
 - guardar estadisticas de canastas encestadas
 
-ideas para confirmacion de tiro:
-	- mezclar con informacion de yolo all_detections_model
-	- cuando se detecte tiro con el modelo de acciones, coger el crop del jugador y predecir
-		si dentro esta la pelota
-	- lo mismo que lo anterior pero con el modelo ya aplicado para la prediccion de pelota,
-		mirando si se situa dentro o cerca de la bounding box del jugador
-	- si el jugador ha sido el ultimo en tener la posesion del balon
-		- posesion -> distancia de la pelota a cada jugador (aplicar threshold maximo para evitar
-			asignar posesion cuando la pelota esta en el aire)
-	- mirar direccion de la pelota, si va en direccion al aro
+- mirar porque si el rebote del tiro sube demasiado y lo ultimo que ha visto es el centro entonces lo da
+	por bueno, en vez de esperar a que baje
 
 
 

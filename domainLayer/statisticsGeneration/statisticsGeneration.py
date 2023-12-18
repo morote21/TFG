@@ -124,7 +124,9 @@ class StatisticsGenerator:
             statisticsDict = {
                 "Team1" : {
                     "FGA" : self.FGAteam1,
+                    "FGM" : self.FGMteam1,
                     "3PA" : self.threePAteam1,
+                    "3PM" : self.threePMteam1,
                     "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam1, self.topview),
                     "ShotHeatmap" : generateHeatMap(self.shotTrackTeam1, self.topview),
                     "ShotTrack" : generateShotTrack(self.shotTrackTeam1, self.topview)
@@ -135,14 +137,18 @@ class StatisticsGenerator:
             statisticsDict = {
                 "Team1" : {
                     "FGA" : self.FGAteam1,
+                    "FGM" : self.FGMteam1,
                     "3PA" : self.threePAteam1,
+                    "3PM" : self.threePMteam1,
                     "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam1, self.topview),
                     "ShotHeatmap" : generateHeatMap(self.shotTrackTeam1, self.topview),
                     "ShotTrack" : generateShotTrack(self.shotTrackTeam1, self.topview)
                 },
                 "Team2" : {
                     "FGA" : self.FGAteam2,
+                    "FGM" : self.FGMteam2,
                     "3PA" : self.threePAteam2,
+                    "3PM" : self.threePMteam2,
                     "MotionHeatmap" : generateHeatMap(self.movementHeatmapTeam2, self.topview),
                     "ShotHeatmap" : generateHeatMap(self.shotTrackTeam2, self.topview),
                     "ShotTrack" : generateShotTrack(self.shotTrackTeam2, self.topview)

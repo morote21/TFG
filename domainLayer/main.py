@@ -138,20 +138,20 @@ def executeStatisticsGeneration(args):
 
     playerTracker = Tracker()                                           # INITIALIZE TRACKER OBJECT            
     actionRecognizer = ar.ActionRecognition()                           # INITIALIZE ACTION RECOGNITION OBJECT
-    madeShotDetector = ShotMadeDetector(rimPoints)
+    madeShotDetector = ShotMadeDetector(rimPoints)                      # INITIALIZE MADE SHOT DETECTOR OBJECT
 
     prevActionsClassifications = {}                                     # DICTIONARY TO STORE THE PREVIOUS CLASSIFICATIONS OF EACH PLAYER
 
     shotsMade = 0
 
-    lastPlayerWithBall = None
-    playerWhoShot = None
-    posOfShot = None
-    shotEnded = False
+    lastPlayerWithBall = None                                           # ID OF THE LAST PLAYER WHO HAS HAD THE BALL
+    playerWhoShot = None                                                # ID OF THE PLAYER WHO HAS SHOT THE BALL
+    posOfShot = None                                                    # POSITION OF THE SHOT IN THE TOPVIEW                
+    shotEnded = False                                                   # BOOLEAN TO KNOW IF THE SHOT HAS ENDED (TRUE ONLY IN ONE FRAME WHEN THE MADE SHOT DETECTION HAS ENDED)
 
-    processingShot = False
+    processingShot = False                                              # BOOLEAN TO KNOW IF THE SHOT IS BEING PROCESSED, THAT IS, IF THE BALL IS OVER THE RIM OR IN THE BACKBOARD
 
-    lastBallCenter = None
+    lastBallCenter = None                                               # LAST POSITION WHERE THE BALL HAS BEEN DETECTED
 
 
     while True:
@@ -165,13 +165,13 @@ def executeStatisticsGeneration(args):
 
         frameToDraw = copy.deepcopy(frame)
 
-        boxes, ids, classes = playerTracker.trackPlayers(frame=frame)   # TRACK PLAYERS IN FRAME
+        boxes, ids, classes = playerTracker.trackPlayers(frame=frame)               # TRACK PLAYERS IN FRAME
 
-        actions = actionRecognizer.inference(frame, boxes, ids, classes)          # PERFORM ACTION RECOGNITION
+        actions = actionRecognizer.inference(frame, boxes, ids, classes)            # PERFORM ACTION RECOGNITION
 
-        ballCenter, ballSize = madeShotDetector.whereBall(frame, frameToDraw)
+        ballCenter, ballSize = madeShotDetector.whereBall(frame, frameToDraw)       # DETECT BALL IN FRAME
 
-        playerWithBall = None
+        playerWithBall = None                                                       # GET PLAYER WHO HAS THE BALL, IF ANY
         if ballSize is not None:
             playerWithBall = utils.whoHasPossession(zip(ids, boxes), ballSize)
             if (playerWithBall != playerWhoShot) and not processingShot:
@@ -183,27 +183,30 @@ def executeStatisticsGeneration(args):
         cv2.putText(frameToDraw, "processing ball: ", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
         cv2.putText(frameToDraw, str(processingShot), (450, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
 
-        if ballCenter is not None:
+        if ballCenter is not None:                                                  # LAST PLACE WHERE BALL IS DETECTED
             lastBallCenter = ballCenter
 
 
-        # correct some parameters
-        if processingShot and playerWhoShot is None:
+        
+        # if the ball is over the rim or in the backboard, start processing the shot
+        if not processingShot and lastBallCenter is not None:
+            processingShot = madeShotDetector.isBallOverRim(lastBallCenter) or madeShotDetector.isBallInBackboard(frame)
+
+        # if the ball has a minimum of height, but no one has shot, then stop processing the shot
+        if processingShot and playerWhoShot is None:                                
             processingShot = False
             shotEnded = False
             posOfShot = None 
         
-
-        if not processingShot and lastBallCenter is not None:
-            processingShot = madeShotDetector.isBallOverRim(lastBallCenter) or madeShotDetector.isBallInBackboard(frame)
-
+        # if a player has shot the ball, and the shot has a minimum of height, then start detecting the result
         if playerWhoShot is not None and processingShot:
             made, ballSize, shotEnded = madeShotDetector.getShotResult(frame, frameToDraw, ballCenter, ballSize)
 
-        
+        # store last player with possession detected 
         if playerWithBall is not None:
             lastPlayerWithBall = playerWithBall
 
+        # if the shot has been processed, and the shot has ended, and someone has shot, then analyze and store the shot
         if processingShot and shotEnded and playerWhoShot is not None:
             shotValue = actionAnalyzer.shotDetected(posOfShot)
             statisticsGenerator.storeShot(posOfShot, association, shotValue, made)
@@ -223,11 +226,10 @@ def executeStatisticsGeneration(args):
             cv2.destroyWindow("backboardCrop")
 
 
-        
-        for box, identity, cls in zip(boxes, ids, classes):         # DRAW BOUNDING BOXES WITH ID AND ACTION
-            #if playerTracker.getClassName(cls) == "person":
+        # for each player detected
+        for box, identity, cls in zip(boxes, ids, classes):             # DRAW BOUNDING BOXES WITH ID AND ACTION
                 
-            crop = frame[box[1]:box[3], box[0]:box[2]]              # CROP PLAYER FROM FRAME FOR TEAM ASSOCIATION
+            crop = frame[box[1]:box[3], box[0]:box[2]]                  # CROP PLAYER FROM FRAME FOR TEAM ASSOCIATION
             association = -1
             if teams is not None:
                 association = teams.associate(crop)                     # ASSOCIATE PLAYER WITH A TEAM
@@ -236,18 +238,16 @@ def executeStatisticsGeneration(args):
 
             floorPoint = ((box[0] + box[2]) / 2, box[3])
             floorPointTransformed = twTransform.transformPoint(floorPoint)
-            statisticsGenerator.storeStep((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)
+            statisticsGenerator.storeStep((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)  # STORE STEP IN HEATMAP
 
             # if actions[identity] == "shoot" and prevActionsClassifications[identity] == "ball in hand":
             #     pos = (int(floorPointTransformed[0]), int(floorPointTransformed[1]))
             #     shotValue = actionAnalyzer.shotDetected(pos)
             #     statisticsGenerator.storeShot(pos, association, shotValue)
 
-            if actions[identity] == "shoot" and lastPlayerWithBall == identity and playerWhoShot is None:
-                playerWhoShot = identity
+            if actions[identity] == "shoot" and lastPlayerWithBall == identity and playerWhoShot is None:   # DETECT IF PLAYER HAS SHOT
+                playerWhoShot = identity    
                 posOfShot = (int(floorPointTransformed[0]), int(floorPointTransformed[1]))
-                #add point to topview
-
                 shotEnded = False
                 #shotValue = actionAnalyzer.shotDetected(posOfShot)
                 #statisticsGenerator.storeShot(posOfShot, association, shotValue)

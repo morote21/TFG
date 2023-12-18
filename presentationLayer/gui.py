@@ -471,12 +471,16 @@ class MainWindow(QMainWindow):
             # vertical layout for numerical statistics team 1
             self.team1statsLayout.addWidget(QLabel("Stats Team 1:"))
             self.team1statsLayout.addWidget(QLabel("FGA: " + str(statisticsDict["Team1"]["FGA"])))
+            self.team1statsLayout.addWidget(QLabel("FGM: " + str(statisticsDict["Team1"]["FGM"])))
             self.team1statsLayout.addWidget(QLabel("3PA: " + str(statisticsDict["Team1"]["3PA"])))
+            self.team1statsLayout.addWidget(QLabel("3PM: " + str(statisticsDict["Team1"]["3PM"])))
 
             # vertical layout for numerical statistics team 2
             self.team2statsLayout.addWidget(QLabel("Stats Team 2:"))
             self.team2statsLayout.addWidget(QLabel("FGA: " + str(statisticsDict["Team2"]["FGA"])))
+            self.team2statsLayout.addWidget(QLabel("FGM: " + str(statisticsDict["Team2"]["FGM"])))
             self.team2statsLayout.addWidget(QLabel("3PA: " + str(statisticsDict["Team2"]["3PA"])))
+            self.team2statsLayout.addWidget(QLabel("3PM: " + str(statisticsDict["Team2"]["3PM"])))
 
 
         elif len(statisticsImages) == 3:
@@ -502,7 +506,9 @@ class MainWindow(QMainWindow):
             # vertical layout for numerical statistics team 1
             self.team1statsLayout.addWidget(QLabel("Stats Team 1:"))
             self.team1statsLayout.addWidget(QLabel("FGA: " + str(statisticsDict["Team1"]["FGA"])))
+            self.team1statsLayout.addWidget(QLabel("FGM: " + str(statisticsDict["Team1"]["FGM"])))
             self.team1statsLayout.addWidget(QLabel("3PA: " + str(statisticsDict["Team1"]["3PA"])))
+            self.team1statsLayout.addWidget(QLabel("3PM: " + str(statisticsDict["Team1"]["3PM"])))
 
 
         self.statisticsToShow = True
