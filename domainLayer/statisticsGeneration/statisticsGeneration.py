@@ -23,9 +23,11 @@ def generateShotTrack(tracks, topview):
     # draw an x for each shot
     for y in range(tracks.shape[0]):
         for x in range(tracks.shape[1]):
-            if tracks[y][x].any() > 0:
+            if tracks[y][x].any() < 0:
                 cv2.line(topviewCopy, (x-5, y-5), (x+5, y+5), (0, 0, 255), 2)
                 cv2.line(topviewCopy, (x+5, y-5), (x-5, y+5), (0, 0, 255), 2)
+            elif tracks[y][x].any() > 0:
+                cv2.circle(topviewCopy, (x, y), 5, (100, 255, 0), 2)
     
     return topviewCopy
 
@@ -56,20 +58,32 @@ class StatisticsGenerator:
                         self.movementHeatmapTeam2[y][x] += 5
 
 
-    def storeShot(self, pos, team, value):
+    def storeShot(self, pos, team, value, made):
         if team == 0 or team == -1:
             self.shotTrackTeam1[pos[1]][pos[0]] += 1
             if value == 2:
-                self.FGAteam1 += 1
+                if made:
+                    self.FGAteam1 = -1
+                else:
+                    self.FGAteam1 = 1
             else:
-                self.threePAteam1 += 1
+                if made:
+                    self.threePAteam1 = -1
+                else:
+                    self.threePAteam1 = 1
                 
         else:
             self.shotTrackTeam2[pos[1]][pos[0]] += 1
             if value == 2:
-                self.FGAteam2 += 1
+                if made:
+                    self.FGAteam2 = -1
+                else:
+                    self.FGAteam2 = 1
             else:
-                self.threePAteam2 += 1
+                if made:
+                    self.threePAteam2 = -1
+                else:
+                    self.threePAteam2 = 1
 
     
     def printHeatmaps(self):

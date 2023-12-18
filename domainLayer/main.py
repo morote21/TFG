@@ -29,6 +29,7 @@ SIZE_OF_ACTION_QUEUE = 10
 
 BLUE = (255, 0, 0)
 
+
 def executeStatisticsGeneration_noImshow(videoPath, team1path, team2path):
     videoFrames = []
     playerBoxes = []
@@ -143,6 +144,16 @@ def executeStatisticsGeneration(args):
 
     shotsMade = 0
 
+    lastPlayerWithBall = None
+    playerWhoShot = None
+    posOfShot = None
+    shotEnded = False
+
+    processingShot = False
+
+    lastBallCenter = None
+
+
     while True:
         ret, frame = video.read()
 
@@ -158,10 +169,54 @@ def executeStatisticsGeneration(args):
 
         actions = actionRecognizer.inference(frame, boxes, ids, classes)          # PERFORM ACTION RECOGNITION
 
-        made = madeShotDetector.inference(frame, frameToDraw)
+        ballCenter, ballSize = madeShotDetector.whereBall(frame, frameToDraw)
 
-        if made:
-            shotsMade += 1
+        playerWithBall = None
+        if ballSize is not None:
+            playerWithBall = utils.whoHasPossession(zip(ids, boxes), ballSize)
+            if (playerWithBall != playerWhoShot) and not processingShot:
+                playerWhoShot = None
+                posOfShot = None
+                shotEnded = False
+
+        # put text processingball
+        cv2.putText(frameToDraw, "processing ball: ", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+        cv2.putText(frameToDraw, str(processingShot), (450, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+
+        if ballCenter is not None:
+            lastBallCenter = ballCenter
+
+
+        # correct some parameters
+        if processingShot and playerWhoShot is None:
+            processingShot = False
+            shotEnded = False
+            posOfShot = None 
+        
+
+        if not processingShot and lastBallCenter is not None:
+            processingShot = madeShotDetector.isBallOverRim(lastBallCenter) or madeShotDetector.isBallInBackboard(frame)
+
+        if playerWhoShot is not None and processingShot:
+            made, ballSize, shotEnded = madeShotDetector.getShotResult(frame, frameToDraw, ballCenter, ballSize)
+
+        
+        if playerWithBall is not None:
+            lastPlayerWithBall = playerWithBall
+
+        if processingShot and shotEnded and playerWhoShot is not None:
+            shotValue = actionAnalyzer.shotDetected(posOfShot)
+            statisticsGenerator.storeShot(posOfShot, association, shotValue, made)
+            cv2.circle(topviewImg, (int(posOfShot[0]), int(posOfShot[1])), 3, (255, 0, 0), 2)
+            playerWhoShot = None
+            posOfShot = None
+            processingShot = False
+            shotEnded = False
+
+            cv2.destroyWindow("backboardCrop")
+
+            if made:
+                shotsMade += 1
         
         for box, identity, cls in zip(boxes, ids, classes):         # DRAW BOUNDING BOXES WITH ID AND ACTION
             #if playerTracker.getClassName(cls) == "person":
@@ -171,16 +226,25 @@ def executeStatisticsGeneration(args):
             if teams is not None:
                 association = teams.associate(crop)                     # ASSOCIATE PLAYER WITH A TEAM
             
-            frameToDraw = drawBoundingBoxPlayer(frameToDraw, box, identity, segmentedCourt, association, actions[identity]) 
+            frameToDraw = drawBoundingBoxPlayer(frameToDraw, box, identity, segmentedCourt, association, actions[identity], playerWithBall) 
 
             floorPoint = ((box[0] + box[2]) / 2, box[3])
             floorPointTransformed = twTransform.transformPoint(floorPoint)
             statisticsGenerator.storeStep((int(floorPointTransformed[0]), int(floorPointTransformed[1])), association)
 
-            if actions[identity] == "shoot" and prevActionsClassifications[identity] == "ball in hand":
-                pos = (int(floorPointTransformed[0]), int(floorPointTransformed[1]))
-                shotValue = actionAnalyzer.shotDetected(pos)
-                statisticsGenerator.storeShot(pos, association, shotValue)
+            # if actions[identity] == "shoot" and prevActionsClassifications[identity] == "ball in hand":
+            #     pos = (int(floorPointTransformed[0]), int(floorPointTransformed[1]))
+            #     shotValue = actionAnalyzer.shotDetected(pos)
+            #     statisticsGenerator.storeShot(pos, association, shotValue)
+
+            if actions[identity] == "shoot" and lastPlayerWithBall == identity and playerWhoShot is None:
+                playerWhoShot = identity
+                posOfShot = (int(floorPointTransformed[0]), int(floorPointTransformed[1]))
+                #add point to topview
+
+                shotEnded = False
+                #shotValue = actionAnalyzer.shotDetected(posOfShot)
+                #statisticsGenerator.storeShot(posOfShot, association, shotValue)
 
         prevActionsClassifications = copy.deepcopy(actions)
         
@@ -195,6 +259,14 @@ def executeStatisticsGeneration(args):
 
         cv2.putText(frameToDraw, "shots made: ", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
         cv2.putText(frameToDraw, str(shotsMade), (350, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+
+        # put text who made the shot
+        if playerWhoShot is not None:
+            cv2.putText(frameToDraw, "player who shot: ", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+            cv2.putText(frameToDraw, str(playerWhoShot), (450, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+        
+        
+            
 
         cv2.imshow("frame", frameToDraw)
         cv2.imshow("topview", topviewImageCpy)

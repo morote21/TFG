@@ -2,19 +2,23 @@ from ultralytics import YOLO
 import cv2
 
 
-def drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, action):
+def drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, action, playerWithBall):
 
     floorPoint = ((box[0] + box[2]) // 2, box[3])
     # get value of floorpoint in segmentedCourt
     # value = segmentedCourt[floorPoint[1]][floorPoint[0]]
     value = 1
     if value:
-        if association == 0:
-            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
-        elif association == 1:
-            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 1)
+        if playerWithBall is not None and playerWithBall == identity:
+            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 255, 0), 1)
+            
         else:
-            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 1)
+            if association == 0:
+                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
+            elif association == 1:
+                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 1)
+            else:
+                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 1)
 
         cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
         cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)

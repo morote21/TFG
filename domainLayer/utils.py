@@ -94,3 +94,27 @@ def getMostCommonElement(array):
     :return: most common element
     """
     return max(set(array), key=array.count)
+
+
+def whoHasPossession(playersIdsAndBoxes, ballSize):
+    """
+    Gets the player who has possession of the ball, which is the one who is the closest to the ball
+    :param playersIdsAndBoxes: list of tuples containing the player id and the player box
+    :param ball: ball box
+    :return: player who has possession of the ball
+    """
+    MIN_DIST = 5
+    ballCenter = np.array([ballSize[0] + ballSize[2], ballSize[1] + ballSize[3]]) / 2.0
+    player = None
+    bestDistToBall = 100000
+    for playerId, playerBox in playersIdsAndBoxes:
+        centerPlayer = np.array([playerBox[0] + playerBox[2], playerBox[1] + playerBox[3]]) / 2.0
+        distToPlayer = np.linalg.norm(centerPlayer - ballCenter)
+        minDistToPlayer = (ballSize[2] - ballSize[0]) * MIN_DIST
+        if distToPlayer < bestDistToBall and distToPlayer < minDistToPlayer:
+            bestDistToBall = distToPlayer
+            player = playerId
+    
+    return player
+
+            
