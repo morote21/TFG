@@ -88,8 +88,9 @@ def executeStatisticsGeneration(args):
 
     topviewImg = cv2.imread(TOPVIEW_PATH)
 
+    topviewCleanCpy = copy.deepcopy(topviewImg)
     actionAnalyzer = ActionAnalysis(topviewImage=topviewImg)
-    statisticsGenerator = StatisticsGenerator(topviewImage=topviewImg)
+    statisticsGenerator = StatisticsGenerator(topviewImage=topviewCleanCpy)
 
     if args.get("team1Path") is not None and args.get("team2Path") is not None:
         team1Img = cv2.imread(args.get("team1Path"))
@@ -112,7 +113,6 @@ def executeStatisticsGeneration(args):
         print("Error reading video frame.\n")
 
     sceneCpy = copy.deepcopy(firstFrame)
-    topviewCpy = copy.deepcopy(topviewImg)
 
     scenePoints = None
     topviewPoints = None
@@ -207,7 +207,14 @@ def executeStatisticsGeneration(args):
         if processingShot and shotEnded and playerWhoShot is not None:
             shotValue = actionAnalyzer.shotDetected(posOfShot)
             statisticsGenerator.storeShot(posOfShot, association, shotValue, made)
-            cv2.circle(topviewImg, (int(posOfShot[0]), int(posOfShot[1])), 3, (255, 0, 0), 2)
+
+            if made:
+                cv2.circle(topviewImg, (int(posOfShot[0]), int(posOfShot[1])), 3, (0, 121, 4), 2)
+                shotsMade += 1
+            else:
+                cv2.line(topviewImg, (int(posOfShot[0])-5, int(posOfShot[1])-5), (int(posOfShot[0])+5, int(posOfShot[1])+5), (0, 0, 255), 2)
+                cv2.line(topviewImg, (int(posOfShot[0])+5, int(posOfShot[1])-5), (int(posOfShot[0])-5, int(posOfShot[1])+5), (0, 0, 255), 2)
+
             playerWhoShot = None
             posOfShot = None
             processingShot = False
@@ -215,8 +222,7 @@ def executeStatisticsGeneration(args):
 
             cv2.destroyWindow("backboardCrop")
 
-            if made:
-                shotsMade += 1
+
         
         for box, identity, cls in zip(boxes, ids, classes):         # DRAW BOUNDING BOXES WITH ID AND ACTION
             #if playerTracker.getClassName(cls) == "person":

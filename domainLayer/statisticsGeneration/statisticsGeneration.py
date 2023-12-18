@@ -23,11 +23,11 @@ def generateShotTrack(tracks, topview):
     # draw an x for each shot
     for y in range(tracks.shape[0]):
         for x in range(tracks.shape[1]):
-            if tracks[y][x].any() < 0:
+            if tracks[y][x] < 0:
                 cv2.line(topviewCopy, (x-5, y-5), (x+5, y+5), (0, 0, 255), 2)
                 cv2.line(topviewCopy, (x+5, y-5), (x-5, y+5), (0, 0, 255), 2)
-            elif tracks[y][x].any() > 0:
-                cv2.circle(topviewCopy, (x, y), 5, (100, 255, 0), 2)
+            elif tracks[y][x] > 0:
+                cv2.circle(topviewCopy, (x, y), 5, (0, 121, 4), 2)
     
     return topviewCopy
 
@@ -38,13 +38,18 @@ class StatisticsGenerator:
         self.topview = topviewImage
         self.movementHeatmapTeam1 = np.zeros(self.topview.shape)
         self.movementHeatmapTeam2 = np.zeros(self.topview.shape)
-        self.shotTrackTeam1 = np.zeros(self.topview.shape)
-        self.shotTrackTeam2 = np.zeros(self.topview.shape)
+        self.shotTrackTeam1 = np.zeros((self.topview.shape[0], self.topview.shape[1]))
+        self.shotTrackTeam2 = np.zeros((self.topview.shape[0], self.topview.shape[1]))
 
         self.FGAteam1 = 0        # FIELD GOAL ATTEMPTS
         self.FGAteam2 = 0        # FIELD GOAL ATTEMPTS
         self.threePAteam1 = 0    # THREE POINT ATTEMPTS
         self.threePAteam2 = 0    # THREE POINT ATTEMPTS
+
+        self.FGMteam1 = 0        # FIELD GOAL MADE
+        self.FGMteam2 = 0        # FIELD GOAL MADE
+        self.threePMteam1 = 0    # THREE POINT MADE
+        self.threePMteam2 = 0    # THREE POINT MADE
     
 
     def storeStep(self, pos, team):
@@ -60,30 +65,42 @@ class StatisticsGenerator:
 
     def storeShot(self, pos, team, value, made):
         if team == 0 or team == -1:
-            self.shotTrackTeam1[pos[1]][pos[0]] += 1
-            if value == 2:
-                if made:
-                    self.FGAteam1 = -1
-                else:
-                    self.FGAteam1 = 1
+            if made:
+                self.shotTrackTeam1[pos[1]][pos[0]] = 1
             else:
+                self.shotTrackTeam1[pos[1]][pos[0]] = -1
+
+            if value == 2:
+                self.FGAteam1 += 1
                 if made:
-                    self.threePAteam1 = -1
-                else:
-                    self.threePAteam1 = 1
+                    self.FGMteam1 += 1
+                
+            else:
+                self.threePAteam1 += 1
+                self.FGAteam1 += 1
+                if made:
+                    self.threePMteam1 += 1
+                    self.FGMteam1 += 1
+                
                 
         else:
-            self.shotTrackTeam2[pos[1]][pos[0]] += 1
-            if value == 2:
-                if made:
-                    self.FGAteam2 = -1
-                else:
-                    self.FGAteam2 = 1
+            if made:
+                self.shotTrackTeam2[pos[1]][pos[0]] = 1
             else:
+                self.shotTrackTeam2[pos[1]][pos[0]] = -1
+
+            if value == 2:
+                self.FGAteam2 += 1
                 if made:
-                    self.threePAteam2 = -1
-                else:
-                    self.threePAteam2 = 1
+                    self.FGMteam2 += 1
+                
+            else:
+                self.threePAteam2 += 1
+                self.FGAteam2 += 1
+                if made:
+                    self.threePMteam2 += 1
+                    self.FGMteam2 += 1
+                
 
     
     def printHeatmaps(self):
