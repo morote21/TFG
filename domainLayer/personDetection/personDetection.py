@@ -10,15 +10,15 @@ def drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, act
     value = 1
     if value:
         if playerWithBall is not None and playerWithBall == identity:
-            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 255, 0), 1)
+            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 255, 255), 2)
             
         else:
             if association == 0:
-                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
+                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
             elif association == 1:
-                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 1)
+                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 2)
             else:
-                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 1)
+                cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 2)
 
         cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
         cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)

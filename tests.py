@@ -78,7 +78,7 @@ def checkBallPresence(backboardCrop, model, dictBackboard, last_square):
 OFFICIAL_RIM_DIAMETER = 46
 OFFICIAL_BALL_DIAMETER = 24
 
-VIDEO_PATH = "/home/morote/Desktop/input_tfg/20231215_131239_Trim.mp4"
+VIDEO_PATH = "/home/morote/Desktop/input_tfg/2v2_60fps_purpleball.mp4"
 video = cv2.VideoCapture(VIDEO_PATH)
 fps = video.get(cv2.CAP_PROP_FPS)
 frameDelay = int(1000 / fps)

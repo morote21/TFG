@@ -3,7 +3,7 @@ import PyQt6.QtCore
 import PyQt6.QtGui
 from PyQt6.QtGui import QPixmap, QIcon
 import PyQt6.QtWidgets
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QScrollArea
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QScrollArea, QSizePolicy
 import cv2
 import sys
 from domainLayer.main import executeStatisticsGeneration
@@ -56,14 +56,40 @@ class MainWindow(QMainWindow):
         mainLayout = QVBoxLayout()
         mainWidget.setLayout(mainLayout)
 
+        mainLayout.addStretch()
+
+        generatorButtonLayout = QHBoxLayout()
+        generatorButtonLayout.addStretch()
+
         # set buttons
         statisticsGeneratorButton = QPushButton("Statistics Generator")
         statisticsGeneratorButton.clicked.connect(self.openStatisticsGenerator)
-        mainLayout.addWidget(statisticsGeneratorButton)
+        statisticsGeneratorButton.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        statisticsGeneratorButton.setMinimumSize(200, 75)  
+        statisticsGeneratorButton.setMaximumSize(200, 75)  
+        generatorButtonLayout.addWidget(statisticsGeneratorButton)
+
+        generatorButtonLayout.addStretch()
+
+        mainLayout.addLayout(generatorButtonLayout)
+
+        mainLayout.addStretch()
+
+        viewerButtonLayout = QHBoxLayout()
+        viewerButtonLayout.addStretch()
 
         statisticsViewerButton = QPushButton("Statistics Viewer")
         statisticsViewerButton.clicked.connect(self.openStatisticsViewer)
-        mainLayout.addWidget(statisticsViewerButton)
+        statisticsViewerButton.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        statisticsViewerButton.setMinimumSize(200, 75)  
+        statisticsViewerButton.setMaximumSize(200, 75)  
+        viewerButtonLayout.addWidget(statisticsViewerButton)
+
+        viewerButtonLayout.addStretch()
+
+        mainLayout.addLayout(viewerButtonLayout)
+
+        mainLayout.addStretch()
 
         
 

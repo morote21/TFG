@@ -85,13 +85,66 @@ TO-DO desde dic 15:
 
 - mirar porque si el rebote del tiro sube demasiado y lo ultimo que ha visto es el centro entonces lo da
 	por bueno, en vez de esperar a que baje
+- para el reconocimiento de si la pelota ha entrado o no a canasta, igual tambien poner cuadrados arriba a la derecha y arriba a la izquierda
 
 
 
+ESTRUCTURA DOCUMENTACION DESARROLLO APLICACION:
+- Cambios respecto estructura inicial
+- Introduccion + esquema de la pipeline + flowchart de la pipeline 
+
+- Preparativos
+	- Lenguaje de programacion
+	- Librerias principales
+
+- Interfaz grafica para generación de estadisticas y modulo datos de entrada
+	- Coordenadas de los bordes		
+	- Coordenadas de aro
+	- Plantillas de equipacion en caso de haber varios equipos
+		
+- Segmentacion de campo
+	- Explicacion (que es)
+	- Objetivo (su uso)
+	- Implementacion (como se ha hecho)
+
+- Deteccion de objetos
+	- Explicacion (que es)
+	- Objetivo (su uso)
+	- Estado del arte (cuales son los metodos actuales)
+	- Implementacion (como se ha hecho)
+
+- Modulo top-view
+	- Explicacion (que es)
+	- Objetivo (su uso)
+	- Implementacion (como se ha hecho)
+
+- Reconocimiento de accion
+	- Explicacion (que es)
+	- Objetivo (su uso)
+	- Estado del arte (cuales son los metodos actuales)
+	- Implementacion (como se ha hecho)
+
+- Reconocimiento de jugador
+	- Explicacion (que es)
+	- Objetivo (su uso)
+	- Implementacion (como se ha hecho)
+
+- Analisis de accion
+	- Explicacion (que es)
+	- Objetivo (su uso)
+	- Implementacion (como se ha hecho)
+
+- Generacion de estadisticas, base de datos e interfaz grafica para visualizacion de estadisticas
+	- Explicacion (que es)
+	- Objetivo (su uso)
+	- Implementacion (como se ha hecho)
+
+	Mezclar correctamente estos 3 apartados
 
 
 
-
+to-do:
+- modificar diseño definitivo en vez de indicar los cambios
 
 
 

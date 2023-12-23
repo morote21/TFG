@@ -1,22 +1,38 @@
-from ultralytics import YOLO
-import torch
 import cv2
 import sys
 import copy
 import numpy as np
 
-def resizeFrame(frame, height=1080):
-    aspect_ratio = frame.shape[1] / frame.shape[0]  # width / height
-    width = int(height * aspect_ratio)
-    resized_frame = cv2.resize(frame, (width, height))
-    return resized_frame
+IMAGE_PATH = "/home/morote/Pictures/prueba24to8bit.png"
+
+def colordepth24bit_to_8bit(img):
+    B_2msb = np.right_shift(img, 16)  # 2 bit size
+    G_3msb = np.right_shift(img, 8)
+
+    B_2msb = np.bitwise_and(B_2msb, 0xff)  # 2 bit size
+    G_3msb = np.bitwise_and(G_3msb, 0xff)
+    R_3msb = np.bitwise_and(img, 0xff)
+
+    B_2msb = np.right_shift(B_2msb, 6)  # 2 bit size
+    G_3msb = np.right_shift(G_3msb, 5)
+    R_3msb = np.right_shift(R_3msb, 5)
+
+    B_2msb = np.left_shift(B_2msb, 6)  # 8 bit size
+    G_3msb = np.left_shift(G_3msb, 3)
+
+    BGR_8bit = np.bitwise_or(B_2msb, G_3msb)
+    BGR_8bit = np.bitwise_or(BGR_8bit, R_3msb)
+
+    BGR_8bit = BGR_8bit.astype(np.uint8)
+    BGR_8bit = BGR_8bit * 32
+
+    return BGR_8bit
 
 
 
-VIDEO_PATH = "/home/morote/Desktop/input_tfg/20231215_131239_Trim.mp4"
+# read image
+img = cv2.imread(IMAGE_PATH)
 
-model = YOLO('domainLayer/models/yolov8m-pose.pt')
+cv2.imshow("BGR_8bit", colordepth24bit_to_8bit(img))
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-model.predict(source=VIDEO_PATH, show=True, device=0)
+cv2.waitKey(0)

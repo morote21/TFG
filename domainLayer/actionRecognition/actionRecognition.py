@@ -16,7 +16,7 @@ MODEL_PATH = "/home/morote/Desktop/TFG/domainLayer/models/model_checkpoints/r2pl
 SIZE_OF_ACTION_QUEUE = 5
 
 
-def updateIds(dictFrames, dictPartialClassifications, dictFinalClassifications, ids):
+def updateIds(dictFrames, dictPlayersFrameFlag, dictPartialClassifications, dictFinalClassifications, ids):
     setOld = set(dictFrames.keys())
     setIds = set(ids)
 
@@ -26,11 +26,13 @@ def updateIds(dictFrames, dictPartialClassifications, dictFinalClassifications, 
                 dictFrames.pop(identity)
                 dictPartialClassifications.pop(identity)
                 dictFinalClassifications.pop(identity)
+                dictPlayersFrameFlag.pop(identity)
         
         for identity in setIds:
             if identity not in setOld:
                 dictFrames[identity] = []
                 dictPartialClassifications[identity] = []
+                dictPlayersFrameFlag[identity] = False
                 dictFinalClassifications[identity] = "undefined"
 
 
@@ -104,14 +106,14 @@ class ActionRecognition:
         self.labels = {0 : "block", 1 : "pass", 2 : "run", 3 : "dribble", 4 : "shoot", 5 : "ball in hand", 6 : "defense", 7 : "pick" , 8 : "no_action" , 9 : "walk" , 10 : "discard"}
 
         self.playersFrames = {}                                                  # DICTIONARY TO STORE THE LAST 16 FRAMES OF EACH PLAYER
-        #self.playersFrameFlag = {}                                               # DICTIONARY TO STORE WHEN WE ARE ABLE TO STORE A FRAME FOR A CERTAIN PLAYER
+        self.playersFrameFlag = {}                                               # DICTIONARY TO STORE WHEN WE ARE ABLE TO STORE A FRAME FOR A CERTAIN PLAYER
         self.playersPartialClassifications = {}                                  # DICTIONARY TO STORE THE PARTIAL CLASSIFICATIONS OF EACH PLAYER
         self.playersFinalClassifications = {}                                    # DICTIONARY TO STORE THE FINAL CLASSIFICATION OF EACH PLAYER
 
 
     def inference(self, frame, boxes, ids, classes):
         # CHECK IF THERE ARE NEW PLAYERS OR PLAYERS THAT HAVE LEFT THE COURT OR NOT TRACKED DUE TO OCCLUSION
-        updateIds(self.playersFrames, self.playersPartialClassifications, self.playersFinalClassifications, ids)
+        updateIds(self.playersFrames, self.playersFrameFlag, self.playersPartialClassifications, self.playersFinalClassifications, ids)
         
         # DRAW BOUNDING BOXES, ASSOCIATE PLAYERS WITH TEAMS AND PERFORM ACTION RECOGNITION FOR EACH PLAYER
         for box, identity, cls in zip(boxes, ids, classes):
@@ -119,14 +121,14 @@ class ActionRecognition:
             cropAndResize = cropPlayer(frame, box)               # CROP PLAYER FROM FRAME FOR ACTION RECOGNITION
 
             # QUEUE OF 16 FRAMES
-            # if self.playersFrameFlag[identity]:
-            #     self.playersFrames[identity].append(cropAndResize)
-            #     self.playersFrameFlag[identity] = False
-            # else:
-            #     self.playersFrameFlag[identity] = True
+            if self.playersFrameFlag[identity]:
+                self.playersFrames[identity].append(cropAndResize)
+                self.playersFrameFlag[identity] = False
+            else:
+                self.playersFrameFlag[identity] = True
             
 
-            self.playersFrames[identity].append(cropAndResize)
+            #self.playersFrames[identity].append(cropAndResize)
 
             if len(self.playersFrames[identity]) > 16:
                     self.playersFrames[identity].pop(0)
