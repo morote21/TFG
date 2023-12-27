@@ -482,17 +482,17 @@ class MainWindow(QMainWindow):
                     label.setPixmap(pixmap)
                     self.gridStatisticsLayout.addWidget(label, 1, 1)
 
-                elif statisticsImage.name == "Team1ShotHeatmap.png":
-                    pixmap = QPixmap(str(statisticsImage))
-                    label = QLabel()
-                    label.setPixmap(pixmap)
-                    self.gridStatisticsLayout.addWidget(label, 2, 0)
+                # elif statisticsImage.name == "Team1ShotHeatmap.png":
+                #     pixmap = QPixmap(str(statisticsImage))
+                #     label = QLabel()
+                #     label.setPixmap(pixmap)
+                #     self.gridStatisticsLayout.addWidget(label, 2, 0)
                 
-                elif statisticsImage.name == "Team2ShotHeatmap.png":
-                    pixmap = QPixmap(str(statisticsImage))
-                    label = QLabel()
-                    label.setPixmap(pixmap)
-                    self.gridStatisticsLayout.addWidget(label, 2, 1)
+                # elif statisticsImage.name == "Team2ShotHeatmap.png":
+                #     pixmap = QPixmap(str(statisticsImage))
+                #     label = QLabel()
+                #     label.setPixmap(pixmap)
+                #     self.gridStatisticsLayout.addWidget(label, 2, 1)
             
             # vertical layout for numerical statistics team 1
             self.team1statsLayout.addWidget(QLabel("Stats Team 1:"))
@@ -523,11 +523,11 @@ class MainWindow(QMainWindow):
                     label.setPixmap(pixmap)
                     self.gridStatisticsLayout.addWidget(label, 1, 0)
                 
-                elif statisticsImage.name == "Team1ShotHeatmap.png":
-                    pixmap = QPixmap(str(statisticsImage))
-                    label = QLabel()
-                    label.setPixmap(pixmap)
-                    self.gridStatisticsLayout.addWidget(label, 2, 0)
+                # elif statisticsImage.name == "Team1ShotHeatmap.png":
+                #     pixmap = QPixmap(str(statisticsImage))
+                #     label = QLabel()
+                #     label.setPixmap(pixmap)
+                #     self.gridStatisticsLayout.addWidget(label, 2, 0)
             
             # vertical layout for numerical statistics team 1
             self.team1statsLayout.addWidget(QLabel("Stats Team 1:"))

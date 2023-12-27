@@ -167,6 +167,8 @@ def executeStatisticsGeneration(args):
 
         boxes, ids, classes = playerTracker.trackPlayers(frame=frame)               # TRACK PLAYERS IN FRAME
 
+        #teams.fitPlayers(boxes, frame)                                                # FIT PLAYERS TO CREATE TEAMS
+
         actions = actionRecognizer.inference(frame, boxes, ids, classes)            # PERFORM ACTION RECOGNITION
 
         ballCenter, ballSize = madeShotDetector.whereBall(frame, frameToDraw)       # DETECT BALL IN FRAME
@@ -180,8 +182,8 @@ def executeStatisticsGeneration(args):
                 shotEnded = False
 
         # put text processingball
-        cv2.putText(frameToDraw, "processing ball: ", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
-        cv2.putText(frameToDraw, str(processingShot), (450, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+        # cv2.putText(frameToDraw, "processing ball: ", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+        # cv2.putText(frameToDraw, str(processingShot), (450, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
 
         if ballCenter is not None:                                                  # LAST PLACE WHERE BALL IS DETECTED
             lastBallCenter = ballCenter
@@ -263,13 +265,13 @@ def executeStatisticsGeneration(args):
             cv2.circle(topviewImageCpy, (int(floorPointTransformed[0]), int(floorPointTransformed[1])), 3,
                        (0, 255, 0), 2)
 
-        cv2.putText(frameToDraw, "shots made: ", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
-        cv2.putText(frameToDraw, str(shotsMade), (350, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+        # cv2.putText(frameToDraw, "shots made: ", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+        # cv2.putText(frameToDraw, str(shotsMade), (350, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
 
-        # put text who made the shot
-        if playerWhoShot is not None:
-            cv2.putText(frameToDraw, "player who shot: ", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
-            cv2.putText(frameToDraw, str(playerWhoShot), (450, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+        # # put text who made the shot
+        # if playerWhoShot is not None:
+        #     cv2.putText(frameToDraw, "player who shot: ", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
+        #     cv2.putText(frameToDraw, str(playerWhoShot), (450, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
         
         
             

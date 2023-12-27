@@ -78,7 +78,7 @@ def checkBallPresence(backboardCrop, model, dictBackboard, last_square):
 OFFICIAL_RIM_DIAMETER = 46
 OFFICIAL_BALL_DIAMETER = 24
 
-VIDEO_PATH = "/home/morote/Desktop/input_tfg/2v2_60fps_purpleball.mp4"
+VIDEO_PATH = "/home/morote/Desktop/input_tfg/20231215_131239_Trim.mp4"
 video = cv2.VideoCapture(VIDEO_PATH)
 fps = video.get(cv2.CAP_PROP_FPS)
 frameDelay = int(1000 / fps)
@@ -157,8 +157,6 @@ while True:
             cv2.rectangle(sceneCopy, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
         elif classes[i] == BALL:
             cv2.rectangle(sceneCopy, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 2)
-        elif classes[i] == RIM:
-            cv2.rectangle(sceneCopy, (box[0], box[1]), (box[2], box[3]), (255, 0, 0), 1)
 
     
     # calculate center of ball
@@ -218,7 +216,6 @@ while True:
     cv2.putText(sceneCopy, "shots made: ", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
     cv2.putText(sceneCopy, str(shots_made), (350, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
 
-    
     cv2.imshow("backboard crop", backboardCrop)
     cv2.imshow("scene", sceneCopy)
     if cv2.waitKey(frameDelay) == 27:

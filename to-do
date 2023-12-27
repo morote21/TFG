@@ -147,5 +147,10 @@ to-do:
 - modificar diseño definitivo en vez de indicar los cambios
 
 
+- probar nuevo metodo de tracking:
+	- utilizar suma del error al cuadrado de las medias al igual que con las asociaciones de equipo
+	- para una deteccion en concreto, en el siguiente frame asignar la bbox que tenga un gran porcentaje de IoU, y que la suma del error al cuadrado de las medias sea muy parecido 
+
+
 
 
