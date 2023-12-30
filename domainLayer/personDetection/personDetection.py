@@ -20,13 +20,13 @@ def drawBoundingBoxPlayer(frame, box, identity, segmentedCourt, association, act
             else:
                 cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 2)
 
-        # cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
-        # cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-        # cv2.circle(frame, floorPoint, 3, (255, 0, 0), 2)
+        cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
+        cv2.putText(frame, str(identity), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        cv2.circle(frame, floorPoint, 3, (255, 0, 0), 2)
 
-        # #print action after identity
-        # cv2.putText(frame, str(action), (box[0] + 25, box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 3)
-        # cv2.putText(frame, str(action), (box[0] + 25, box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        #print action after identity
+        cv2.putText(frame, str(action), (box[0] + 25, box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 3)
+        cv2.putText(frame, str(action), (box[0] + 25, box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
     return frame
 
