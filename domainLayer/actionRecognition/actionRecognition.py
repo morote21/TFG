@@ -26,13 +26,13 @@ def updateIds(dictFrames, dictPlayersFrameFlag, dictPartialClassifications, dict
                 dictFrames.pop(identity)
                 dictPartialClassifications.pop(identity)
                 dictFinalClassifications.pop(identity)
-                #dictPlayersFrameFlag.pop(identity)
+                dictPlayersFrameFlag.pop(identity)
         
         for identity in setIds:
             if identity not in setOld:
                 dictFrames[identity] = []
                 dictPartialClassifications[identity] = []
-                #dictPlayersFrameFlag[identity] = False
+                dictPlayersFrameFlag[identity] = False
                 dictFinalClassifications[identity] = "undefined"
 
 
@@ -121,14 +121,14 @@ class ActionRecognition:
             cropAndResize = cropPlayer(frame, box)               # CROP PLAYER FROM FRAME FOR ACTION RECOGNITION
 
             # QUEUE OF 16 FRAMES
-            # if self.playersFrameFlag[identity]:
-            #     self.playersFrames[identity].append(cropAndResize)
-            #     self.playersFrameFlag[identity] = False
-            # else:
-            #     self.playersFrameFlag[identity] = True
+            if self.playersFrameFlag[identity]:
+                self.playersFrames[identity].append(cropAndResize)
+                self.playersFrameFlag[identity] = False
+            else:
+                self.playersFrameFlag[identity] = True
             
 
-            self.playersFrames[identity].append(cropAndResize)
+            # self.playersFrames[identity].append(cropAndResize)
 
             if len(self.playersFrames[identity]) > 16:
                     self.playersFrames[identity].pop(0)

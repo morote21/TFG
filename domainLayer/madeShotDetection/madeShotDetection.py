@@ -18,6 +18,7 @@ class ShotMadeDetector:
     def __init__(self, rimCoords):
         self.model = YOLO("./domainLayer/models/all_detections_model.pt")
         self.rimCoords = rimCoords
+        self.classesPredicted = []
 
         self.rimCenter = np.mean(rimCoords, axis=0)
         self.rimDiameter = np.linalg.norm(rimCoords[0] - rimCoords[1])
@@ -70,7 +71,6 @@ class ShotMadeDetector:
                 cv2.rectangle(backboardCropToDraw, (box[0], box[1]), (box[2], box[3]), (255, 165, 0), 2)
                 ballCenter = np.array([box[0] + box[2], box[1] + box[3]]) / 2.0
                 ballCount += 1
-
 
                 if dictBackboard["center"][0] < ballCenter[0] < dictBackboard["center"][2] and dictBackboard["center"][1] < ballCenter[1] < dictBackboard["center"][3]:
                     cv2.rectangle(backboardCropToDraw, (dictBackboard["center"][0], dictBackboard["center"][1]), (dictBackboard["center"][2], dictBackboard["center"][3]), GREEN, 2)
@@ -186,7 +186,8 @@ class ShotMadeDetector:
     
 
     def whereBall(self, frame, frameToDraw):
-        results = self.model.predict(frame, device=0, conf=0.3, show=False, save=False)
+        self.classesPredicted = []
+        results = self.model.predict(frame, device=0, conf=0.5, show=False, save=False)
 
         boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
         classes = results[0].boxes.cls.cpu().numpy().astype(int)
@@ -195,6 +196,8 @@ class ShotMadeDetector:
         bestBallBox = None
         for i, box in enumerate(boxes):
             if classes[i] == BALL:
+                self.classesPredicted.append(classes[i])
+              
                 if results[0].boxes.conf[i] > bestBallConf:
                     bestBallConf = results[0].boxes.conf[i]
                     bestBallBox = box
@@ -219,3 +222,6 @@ class ShotMadeDetector:
         
         return False
 
+
+    def getBallDetections(self):
+        return self.classesPredicted

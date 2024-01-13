@@ -96,6 +96,35 @@ def getMostCommonElement(array):
     return max(set(array), key=array.count)
 
 
+def getIntersection(box1, box2):
+    """
+    Gets the intersection between two boxes
+    :param box1: first box
+    :param box2: second box
+    :return: intersection between the two boxes
+    """
+    x1 = max(box1[0], box2[0])
+    y1 = max(box1[1], box2[1])
+    x2 = min(box1[2], box2[2])
+    y2 = min(box1[3], box2[3])
+
+    return max(0, x2 - x1) * max(0, y2 - y1)
+
+def getUnion(box1, box2):
+    """
+    Gets the union between two boxes
+    :param box1: first box
+    :param box2: second box
+    :return: union between the two boxes
+    """
+    intersection = getIntersection(box1, box2)
+    areaBox1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    areaBox2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    union = areaBox1 + areaBox2 - intersection
+
+    return union
+
+
 def whoHasPossession(playersIdsAndBoxes, ballSize):
     """
     Gets the player who has possession of the ball, which is the one who is the closest to the ball
@@ -103,16 +132,27 @@ def whoHasPossession(playersIdsAndBoxes, ballSize):
     :param ball: ball box
     :return: player who has possession of the ball
     """
-    MIN_DIST = 5
-    ballCenter = np.array([ballSize[0] + ballSize[2], ballSize[1] + ballSize[3]]) / 2.0
+    # MIN_DIST = 5
+    # ballCenter = np.array([ballSize[0] + ballSize[2], ballSize[1] + ballSize[3]]) / 2.0
+    # player = None
+    # bestDistToBall = 100000
+    # for playerId, playerBox in playersIdsAndBoxes:
+    #     centerPlayer = np.array([playerBox[0] + playerBox[2], playerBox[1] + playerBox[3]]) / 2.0
+    #     distToPlayer = np.linalg.norm(centerPlayer - ballCenter)
+    #     minDistToPlayer = (ballSize[2] - ballSize[0]) * MIN_DIST
+    #     if distToPlayer < bestDistToBall and distToPlayer < minDistToPlayer:
+    #         bestDistToBall = distToPlayer
+    #         player = playerId
+
+
+    # check possession with intersection of at least 0.8
     player = None
-    bestDistToBall = 100000
+    bestIntersection = 0
     for playerId, playerBox in playersIdsAndBoxes:
-        centerPlayer = np.array([playerBox[0] + playerBox[2], playerBox[1] + playerBox[3]]) / 2.0
-        distToPlayer = np.linalg.norm(centerPlayer - ballCenter)
-        minDistToPlayer = (ballSize[2] - ballSize[0]) * MIN_DIST
-        if distToPlayer < bestDistToBall and distToPlayer < minDistToPlayer:
-            bestDistToBall = distToPlayer
+        intersection = getIntersection(ballSize, playerBox)
+
+        if intersection > bestIntersection:
+            bestIntersection = intersection
             player = playerId
     
     return player

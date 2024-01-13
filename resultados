@@ -1,0 +1,91 @@
+game0 -> scn1_4k_30fps_noteams_1_clip1
+game1 -> scn1_4k_30fps_noteams_1_clip2
+game2 -> scn1_4k_30fps_noteams_1_clip3
+game3 -> scn1_4k_30fps_noteams_1_clip4
+game4 -> scn2_4k_60fps_noteams_1_clip1
+game5 -> scn2_4k_60fps_noteams_1_clip2
+game6 -> scn2_4k_60fps_noteams_1_clip3 (posiblemente ni contarlo)
+game7 -> scn2_4k_60fps_noteams_2_clip1 (mejor utilizar para validar topview)
+game8 -> scn2_4k_60fps_noteams_2_clip2 (malo)
+game9 -> scn2_4k_60fps_noteams_2_clip3 (no tan malo pero sirve tambien para validar topview)
+game10 -> scn2_4k_60fps_teams_1_clip1 (malo)
+game11 -> scn2_4k_60fps_teams_1_clip2
+game12 -> scn2_4k_60fps_teams_1_clip3
+game13 -> mic3ptcontest_purpleball (recortar el clip a la parte donde mejor funciona, y indicar que 
+	con esta pelota si no es muy claro no funciona bien)
+	(sirve sobretodo para validar topview)
+game14 -> marina3ptcontest_purpleball (no detecta casi nada la pelota)
+game15 -> 3ptcontest_outdoor_4k_30fps (solo cuando esta cerca, problemas cuando la pelota sale de la 
+	imagen)
+game16 -> version mejorada de game15 con la confidencia para deteccion de balon mas alta y posesion con
+	iou
+	
+game17 -> version mejorada de game0 con la conf de pelota 0.5 y posesion iou
+game18 -> version mejorada de game1 con la conf de pelota 0.5 y posesion iou
+game19 -> version mejorada de game2 con la conf de pelota 0.5 y posesion iou
+game20 -> version mejorada de game3 con la conf de pelota 0.5 y posesion iou
+game21 -> version mejorada de game4 con la conf de pelota 0.5 y posesion iou
+game22 -> version mejorada de game5 con la conf de pelota 0.5 y posesion iou
+game23 -> version mejorada (aunque sigue siendo mala) de game6 con la conf de pelota 0.5 y posesion iou
+
+game24 -> version mejorada de game0 con la conf de pelota 0.5 y posesion intersect
+game25 -> version mejorada de game1 con la conf de pelota 0.5 y posesion intersect
+game26 -> version mejorada de game2 con la conf de pelota 0.5 y posesion intersect
+game27 -> version mejorada de game3 con la conf de pelota 0.5 y posesion intersect
+game28 -> version mejorada de game4 con la conf de pelota 0.5 y posesion intersect
+game29 -> version mejorada de game5 con la conf de pelota 0.5 y posesion intersect
+game30 -> version mejorada de game6 con la conf de pelota 0.5 y posesion intersect
+
+scene0 -> scn1
+scene1 -> scn2 no team
+scene2 -> scn2 teams (team1 -> green , team2 -> black)
+
+
+
+
+
+cons:
+- tiros que se efectuan en los puntos mas lejanos del campo
+- pases que parecen tiros dado que pasan por la canasta
+- tiros con muchas oclusiones
+- tiros donde la pelota no entra pero pasa por el recuadro central
+- tiros que no parecen tiros
+- tiros mal asignados cuando se asigna otro tirador mientras la pelota esta en el aire por otro tiro
+	(scn1_4k_30fps_noteams_1_clip3 con mi tiro)
+- cambios de posesion en el aire cuando se tira la pelota a canasta
+- tiros que no son a distancia
+- cuando hay equipos, en el tiro es posible que se asigne erroneamente el equipo mientras el jugador tira,
+	 dandole el tiro al equipo contrario
+	 
+
+
+se pueden usar:
+- game0
+- game1
+- game2
+- game3
+- game4 (mas o menos)
+- game5 (de los que mejor)
+ 
+	 
+	 
+doc structure:
+- decir que se ha hecho para comprobar los resultados:
+	- donde se han grabado videos
+	- en que formato se han grabado
+	- intenciones al grabar los videos (tipos de ejercicios, etc.)
+	
+- como se han validado los resultados
+	- para topview: comparar mapa de calor con ejercicios donde los jugadores se situarán en lugares
+		especificos, como rueda de entradas o concurso triples
+	- para tiros normales: se ha hecho un groundtruth con algunos videos y se han comparado
+		visualmente
+		
+- videos problematicos
+	- videos por equipos con muchas oclusiones
+	- videos en resolucion fhd
+	- videos con diferente pelota
+
+- algunos resultados decentes
+
+- 
