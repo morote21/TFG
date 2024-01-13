@@ -4,7 +4,6 @@ import PyQt6.QtGui
 from PyQt6.QtGui import QPixmap, QIcon
 import PyQt6.QtWidgets
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QScrollArea, QSizePolicy
-import cv2
 import sys
 from domainLayer.main import executeStatisticsGeneration
 from pathlib import Path

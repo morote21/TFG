@@ -15,6 +15,7 @@ GREEN = (0, 255, 0)
 BLUE = (255, 0, 0)
 
 class ShotMadeDetector:
+
     def __init__(self, rimCoords):
         self.model = YOLO("./domainLayer/models/all_detections_model.pt")
         self.rimCoords = rimCoords
@@ -58,6 +59,12 @@ class ShotMadeDetector:
 
 
     def checkBallPresence(self, backboardCrop, dictBackboard):
+        """
+        Checks whether the ball is in the backboard or not
+        :param backboardCrop: backboard cropped
+        :param dictBackboard: dictionary with the coordinates of the different squares of the backboard
+        :return: backboard cropped with the ball and the squares drawn
+        """
         backboardCropToDraw = copy.deepcopy(backboardCrop)
         resultsCrop = self.model.predict(backboardCrop, device=0, conf=0.3, show=False, save=False)
         boxesCrop = resultsCrop[0].boxes.xyxy.cpu().numpy().astype(int)
@@ -158,10 +165,6 @@ class ShotMadeDetector:
         
         
         return False, ballSize, False
-
-    def getCroppedFrame(self, frame):
-        return frame[self.aboveTop - int(self.rimDiameter/4):self.centerBottom + int(self.rimDiameter/4), 
-                     self.leftLeft - int(self.rimDiameter/4):self.rightRight + int(self.rimDiameter/4)]
     
 
     def isBallOverRim(self, ballCenter):
@@ -186,6 +189,12 @@ class ShotMadeDetector:
     
 
     def whereBall(self, frame, frameToDraw):
+        """
+        Returns the center and the bounding box of the ball in the frame
+        :param frame: frame to make inference on
+        :param frameToDraw: frame where the inference will be drawn
+        :return: center of the ball
+        """
         self.classesPredicted = []
         results = self.model.predict(frame, device=0, conf=0.5, show=False, save=False)
 
@@ -211,6 +220,11 @@ class ShotMadeDetector:
     
 
     def isBallInBackboard(self, frame):
+        """
+        Returns whether the ball is in the backboard or not
+        :param frame: frame to make inference on
+        :return: whether the ball is in the backboard or not
+        """
         backboardCrop = frame[self.aboveTop - int(self.rimDiameter/4):self.centerBottom + int(self.rimDiameter/4), 
                                   self.leftLeft - int(self.rimDiameter/4):self.rightRight + int(self.rimDiameter/4)]
         backboardCropToDraw = copy.deepcopy(backboardCrop)
@@ -224,4 +238,8 @@ class ShotMadeDetector:
 
 
     def getBallDetections(self):
+        """
+        Returns the classes predicted
+        :return: classes predicted
+        """
         return self.classesPredicted

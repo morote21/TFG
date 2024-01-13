@@ -27,6 +27,11 @@ class ActionAnalysis:
 
     
     def shotDetected(self, pos):
+        """
+        Returns true if a shot has been detected
+        :param pos: position of the player (tuple)
+        :return: true if a shot has been detected (bool)
+        """
         if self.threeZone[pos[1]][pos[0]]:
             return 3
         else:

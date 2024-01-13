@@ -3,6 +3,12 @@ import numpy as np
 import torch
 
 def resizeFrame(frame, height=1080):
+    """
+    Resizes the frame to a specific height
+    :param frame: frame to resize
+    :param height: height to resize to
+    :return: resized frame
+    """
     aspect_ratio = frame.shape[1] / frame.shape[0]  # width / height
     width = int(height * aspect_ratio)
     resized_frame = cv2.resize(frame, (width, height))

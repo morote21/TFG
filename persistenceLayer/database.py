@@ -8,6 +8,11 @@ TOPVIEW_POINTS = "database/topview/topview_coords.json"
 
 
 def storeStatistics(statisticsDict):
+    """
+    Stores the statistics in the database
+    :param statisticsDict: dictionary with the statistics (dict)
+    :return: None
+    """
     print("Storing statistics...")
 
     firstFrame = statisticsDict["firstFrame"]
@@ -157,6 +162,11 @@ def storeStatistics(statisticsDict):
 
 
 def readTopviewPoints(side):
+    """
+    Reads the topview points from the database
+    :param side: side of the court (string)
+    :return: topview points (np.array)
+    """
     topviewPoints = []
     with open(TOPVIEW_POINTS, "r") as f:
         topviewPointsJson = json.load(f)
@@ -177,6 +187,11 @@ def readTopviewPoints(side):
 
 
 def readScenePoints(scenePath):
+    """
+    Reads the scene points from the database
+    :param scenePath: path to the scene (string)
+    :return: scene points (np.array)
+    """
     scenePoints = []
     rimPoints = []
     path = Path(scenePath) / "scenePoints.json"

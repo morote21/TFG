@@ -1,7 +1,5 @@
 import numpy as np
-import cv2
 import matplotlib.pyplot as plt
-import matplotlib
 import copy
 from ultralytics import YOLO
 
@@ -30,11 +28,21 @@ def colordepth24bitTo8bit(img):
 
 
 def getDistance(mean1, mean2):
+    """
+    Gets the distance between two means
+    :param mean1: mean of the first player (tuple)
+    :param mean2: mean of the second player (tuple)
+    :return: distance between the two means (float)
+    """
     return (mean1[0]-mean2[0])**2 + (mean1[1]-mean2[1])**2 + (mean1[2]-mean2[2])**2
 
 
 def getMeanOfEachColorChannel(image):
-
+    """
+    Gets the mean of each color channel of the image
+    :param image: image (np.array)
+    :return: mean of each color channel (tuple)
+    """
     # BGR
     b = image[:, :, 0]
     g = image[:, :, 1]
@@ -46,79 +54,26 @@ def getMeanOfEachColorChannel(image):
 
     return meanB, meanG, meanR
 
-
-def get_color_histogram(image):
-    im = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # Poner una mascara mas adelante por la parte del torax
-    width = im.shape[1]  # Use the width of the image
-    height = im.shape[0]  # Use the height of the image
-
-    # Mascara donde se situa la ROI (tren superior, que es donde se encuentra la camiseta)
-    quarter_wide = width // 4
-    quarter_height = height // 4
-    mask = np.zeros((height, width), dtype=np.uint8)
-    mask[quarter_height:(height - quarter_height), quarter_wide:(width - quarter_wide)] = 255
-
-    hist = cv2.calcHist([im], [0, 1, 2], mask, [256, 256, 256], [0, 256, 0, 256, 0, 256])
-    return hist
-
-def getRoiOfPlayer(image):
-    # crop image by 25% above and 40% below
-    height = image.shape[0]
-    width = image.shape[1]
-    cropAbove = int(height * 0.25)
-    cropBelow = int(height * 0.4)
-    image = image[cropAbove:height - cropBelow, :]
-
-    # crop image by 15% left and 15% right
-    cropLeft = int(width * 0.15)
-    cropRight = int(width * 0.15)
-    image = image[:, cropLeft:width - cropRight]
-
-    return image
-
-
     
 
 class Teams:
     def __init__(self, image_player_1, image_player_2, n_players_team):
         self.players_per_team = n_players_team
-        # self.team1_histogram = get_color_histogram(image_player_1)
-        # self.team2_histogram = get_color_histogram(image_player_2)
+
         self.model = YOLO("/home/morote/Desktop/TFG/domainLayer/models/yolov8m-pose.pt")
         self.clusters = None
 
-        # image_player_1 = getRoiOfPlayer(image_player_1)
-        # image_player_2 = getRoiOfPlayer(image_player_2)
-        # self.team1mean = getMeanOfEachColorChannel(image_player_1)
-        # self.team2mean = getMeanOfEachColorChannel(image_player_2)
+        self.team1Torax = getMeanOfEachColorChannel(self.getRoiOfPlayer(image_player_1)[0])
+        self.team2Torax = getMeanOfEachColorChannel(self.getRoiOfPlayer(image_player_2)[0])
+        self.team1Hip = getMeanOfEachColorChannel(self.getRoiOfPlayer(image_player_1)[1])
+        self.team2Hip = getMeanOfEachColorChannel(self.getRoiOfPlayer(image_player_2)[1])
 
-        self.team1Torax = getMeanOfEachColorChannel(self.getRoiOfPlayer2(image_player_1)[0])
-        self.team2Torax = getMeanOfEachColorChannel(self.getRoiOfPlayer2(image_player_2)[0])
-        self.team1Hip = getMeanOfEachColorChannel(self.getRoiOfPlayer2(image_player_1)[1])
-        self.team2Hip = getMeanOfEachColorChannel(self.getRoiOfPlayer2(image_player_2)[1])
-
-    def associate2(self, image):
-        # im = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        # hist = get_color_histogram(im)
-        # cv2.normalize(hist, hist, 0, 1, cv2.NORM_MINMAX)
-
-        # dist_team1 = cv2.compareHist(hist, self.team1_histogram, cv2.HISTCMP_BHATTACHARYYA)
-        # dist_team2 = cv2.compareHist(hist, self.team2_histogram, cv2.HISTCMP_BHATTACHARYYA)
-        imageCpy = copy.deepcopy(image)
-        imageCpy = getRoiOfPlayer(imageCpy)
-        #imageCpy = colordepth24bitTo8bit(imageCpy)
-        mean = getMeanOfEachColorChannel(imageCpy)
-        dist_team1 = (mean[0]-self.team1mean[0])**2 + (mean[1] - self.team1mean[1])**2 + (mean[2]-self.team1mean[2])**2
-        dist_team2 = (mean[0]-self.team2mean[0])**2 + (mean[1] - self.team2mean[1])**2 + (mean[2]-self.team2mean[2])**2
-
-        if dist_team1 < dist_team2:
-            return 0
-        else:
-            return 1
-
-
-    def getRoiOfPlayer2(self, image):
+    def getRoiOfPlayer(self, image):
+        """
+        Gets the region of interest of the player
+        :param image: image of the player (np.array)
+        :return: region of interest of the player (np.array)
+        """
         player = copy.deepcopy(image)
         results = self.model.predict(player)
         keypoints = results[0].keypoints.xy.cpu().numpy()[0]
@@ -185,42 +140,19 @@ class Teams:
                     player2 = player2Means
 
         return player1, player2
-    
-
-    def fitPlayers(self, boxes, image):
-        bboxes = []
-        for box in boxes:
-            bboxes.append(image[box[1]:box[3], box[0]:box[2]])
-        # image = colordepth24bitTo8bit(image)
-        self.clusters = self.get2PlayersWithHighestBGRDistance(bboxes)
-        self.clusters = np.array(self.clusters)
-        
-        if self.team1 is None:
-            self.team1 = self.clusters[0]
-            self.team2 = self.clusters[1]
-
-        else:
-            # update teams so the clusters represent the same team as the previous frame
-            distc1t1 = getDistance(self.clusters[0], self.team1)
-            distc2t1 = getDistance(self.clusters[1], self.team1)
-            distc1t2 = getDistance(self.clusters[0], self.team2)
-            distc2t2 = getDistance(self.clusters[1], self.team2)
-            # get min distance, so the cluster with closest distance to the team is the same team
-            minDist = min(distc1t1, distc2t1, distc1t2, distc2t2)
-            if minDist == distc1t1 or minDist == distc1t2:
-                self.team1 = self.clusters[0]
-                self.team2 = self.clusters[1]
-            elif minDist == distc2t1 or minDist == distc2t2:
-                self.team1 = self.clusters[1]
-                self.team2 = self.clusters[0]
 
 
     def associate(self, player):
-        distancePlayerToC1Torax = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer2(player)[0]), self.team1Torax)
-        distancePlayerToC2Torax = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer2(player)[0]), self.team2Torax)
+        """
+        Associates the player to a team
+        :param player: player to associate (np.array)
+        :return: team of the player (int)
+        """
+        distancePlayerToC1Torax = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer(player)[0]), self.team1Torax)
+        distancePlayerToC2Torax = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer(player)[0]), self.team2Torax)
 
-        distancePlayerToC1Hip = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer2(player)[1]), self.team1Hip)
-        distancePlayerToC2Hip = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer2(player)[1]), self.team2Hip)
+        distancePlayerToC1Hip = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer(player)[1]), self.team1Hip)
+        distancePlayerToC2Hip = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer(player)[1]), self.team2Hip)
 
         distToC1 = min(distancePlayerToC1Torax, distancePlayerToC1Hip)
         distToC2 = min(distancePlayerToC2Torax, distancePlayerToC2Hip)

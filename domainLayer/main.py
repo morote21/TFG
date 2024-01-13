@@ -18,11 +18,7 @@ import json
 from pathlib import Path
 from domainLayer.madeShotDetection.madeShotDetection import ShotMadeDetector
 
-# VIDEO_PATH = "/home/morote/Desktop/input_tfg/2000_0226_194537_003.MP4"
-VIDEO_PATH = "/home/morote/Desktop/input_tfg/IMG_0500.mp4"
 TOPVIEW_PATH = "database/topview/topview_image.jpg"
-TEAM_1_PLAYER = "/home/morote/Desktop/input_tfg/team1_black.png"
-TEAM_2_PLAYER = "/home/morote/Desktop/input_tfg/team2_white.png"
 TOPVIEW_POINTS = "database/topview/topview_coords.json"
 
 SIZE_OF_ACTION_QUEUE = 10
@@ -181,10 +177,6 @@ def executeStatisticsGeneration(args):
                 posOfShot = None
                 shotEnded = False
 
-        # put text processingball
-        # cv2.putText(frameToDraw, "processing ball: ", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
-        # cv2.putText(frameToDraw, str(processingShot), (450, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
-
         if ballCenter is not None:                                                  # LAST PLACE WHERE BALL IS DETECTED
             lastBallCenter = ballCenter
 
@@ -263,18 +255,7 @@ def executeStatisticsGeneration(args):
             floorPoint = ((box[0] + box[2]) / 2, box[3])
             floorPointTransformed = twTransform.transformPoint(floorPoint)
             cv2.circle(topviewImageCpy, (int(floorPointTransformed[0]), int(floorPointTransformed[1])), 3,
-                       (0, 255, 0), 2)
-
-        # cv2.putText(frameToDraw, "shots made: ", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
-        # cv2.putText(frameToDraw, str(shotsMade), (350, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
-
-        # # put text who made the shot
-        # if playerWhoShot is not None:
-        #     cv2.putText(frameToDraw, "player who shot: ", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
-        #     cv2.putText(frameToDraw, str(playerWhoShot), (450, 80), cv2.FONT_HERSHEY_SIMPLEX, 1.5, BLUE, 2)
-        
-        
-            
+                       (0, 255, 0), 2)    
 
         cv2.imshow("frame", frameToDraw)
         cv2.imshow("topview", topviewImageCpy)
@@ -300,13 +281,3 @@ def executeStatisticsGeneration(args):
 
     storeStatistics(statisticsDict)
 
-if __name__ == '__main__':
-    argsDict = {
-        "videoPath": VIDEO_PATH,
-        "team1Path": TEAM_1_PLAYER,
-        "team2Path": TEAM_2_PLAYER,
-        "courtSide": "right",
-        "scenePointsPath": None     # Path of folder containing scenePoints.json
-    }
-    
-    executeStatisticsGeneration(args=argsDict)

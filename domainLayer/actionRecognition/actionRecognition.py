@@ -1,9 +1,6 @@
 import cv2
 import numpy as np
 
-import copy
-from easydict import EasyDict
-from random import randint
 from imutils.video import FPS
 
 import torch
@@ -15,8 +12,18 @@ from domainLayer.utils import load_weights, getMostCommonElement
 MODEL_PATH = "/home/morote/Desktop/TFG/domainLayer/models/model_checkpoints/r2plus1d_augmented-3/r2plus1d_multiclass_12_0.0001.pt"
 SIZE_OF_ACTION_QUEUE = 5
 
+VIDEO_FPS = 60
 
 def updateIds(dictFrames, dictPlayersFrameFlag, dictPartialClassifications, dictFinalClassifications, ids):
+    """
+    Updates the keys of the dictionaries with the ids of the players
+    :param dictFrames: dictionary with the frames of each player (dictionary)
+    :param dictPlayersFrameFlag: dictionary with the flag of each player (dictionary)
+    :param dictPartialClassifications: dictionary with the partial classifications of each player (dictionary)
+    :param dictFinalClassifications: dictionary with the final classifications of each player (dictionary)
+    :param ids: ids of the players (list)
+    :return: None
+    """
     setOld = set(dictFrames.keys())
     setIds = set(ids)
 
@@ -26,19 +33,18 @@ def updateIds(dictFrames, dictPlayersFrameFlag, dictPartialClassifications, dict
                 dictFrames.pop(identity)
                 dictPartialClassifications.pop(identity)
                 dictFinalClassifications.pop(identity)
-                dictPlayersFrameFlag.pop(identity)
+                if VIDEO_FPS == 60:
+                    dictPlayersFrameFlag.pop(identity)
         
         for identity in setIds:
             if identity not in setOld:
                 dictFrames[identity] = []
                 dictPartialClassifications[identity] = []
-                dictPlayersFrameFlag[identity] = False
                 dictFinalClassifications[identity] = "undefined"
+                if VIDEO_FPS == 60:
+                    dictPlayersFrameFlag[identity] = False
 
 
-
-
-# SEGURAMENTE ESTE MAL, HACERLO A MI MANERA PERO RESPETANDO COMO SERIA LA ENTRADA DE LA RED
 def cropAction(clip, cropWindow, player=0):
 
     video = []
@@ -65,6 +71,12 @@ def cropAction(clip, cropWindow, player=0):
     return video
 
 def cropPlayer(frame, boundingbox):
+    """
+    Crops the player from the frame
+    :param frame: frame to crop (np.array)
+    :param boundingbox: bounding box of the player (list)
+    :return: cropped frame (np.array)
+    """
     x = max(int(boundingbox[0]) - 10, 0)
     y = max(int(boundingbox[1]) - 10, 0)
     w = int(boundingbox[2]) - int(boundingbox[0]) + 20
@@ -84,6 +96,11 @@ def cropPlayer(frame, boundingbox):
 
 
 def inferenceShape(batch):
+    """
+    Adjusts the shape of the batch for inference
+    :param batch: batch of frames (torch.Tensor)
+    :return: batch of frames (torch.Tensor)
+    """
     batch = batch.permute(3, 0, 1, 2)    # (time, height, width, channels) -> (channels, time, height, width)
     # add 1 dimension to the beginning of the tensor of size 1
     batch = batch.unsqueeze(0)
@@ -98,6 +115,7 @@ class ActionRecognition:
         self.model.fc = nn.Linear(num_ftrs, 10, bias=True)
         self.model = load_weights(self.model, "/home/morote/Desktop/TFG/domainLayer/models/model_checkpoints/r2plus1d_augmented-3",
                                   "r2plus1d_multiclass", 12, 0.0001)
+        
         if torch.cuda.is_available():
             self.model = self.model.to(self.device)
         
@@ -112,6 +130,14 @@ class ActionRecognition:
 
 
     def inference(self, frame, boxes, ids, classes):
+        """
+        Performs inference on the frame
+        :param frame: frame to perform inference (np.array)
+        :param boxes: bounding boxes of the players (list)
+        :param ids: ids of the players (list)
+        :param classes: classes of the players (list)
+        :return: final classifications of the action of each player detected (dictionary)
+        """
         # CHECK IF THERE ARE NEW PLAYERS OR PLAYERS THAT HAVE LEFT THE COURT OR NOT TRACKED DUE TO OCCLUSION
         updateIds(self.playersFrames, self.playersFrameFlag, self.playersPartialClassifications, self.playersFinalClassifications, ids)
         
@@ -121,14 +147,15 @@ class ActionRecognition:
             cropAndResize = cropPlayer(frame, box)               # CROP PLAYER FROM FRAME FOR ACTION RECOGNITION
 
             # QUEUE OF 16 FRAMES
-            if self.playersFrameFlag[identity]:
-                self.playersFrames[identity].append(cropAndResize)
-                self.playersFrameFlag[identity] = False
-            else:
-                self.playersFrameFlag[identity] = True
+            if VIDEO_FPS == 60:
+                if self.playersFrameFlag[identity]:
+                    self.playersFrames[identity].append(cropAndResize)
+                    self.playersFrameFlag[identity] = False
+                else:
+                    self.playersFrameFlag[identity] = True
             
-
-            # self.playersFrames[identity].append(cropAndResize)
+            else:
+                self.playersFrames[identity].append(cropAndResize)
 
             if len(self.playersFrames[identity]) > 16:
                     self.playersFrames[identity].pop(0)
@@ -136,14 +163,14 @@ class ActionRecognition:
             # INFERENCE
             if len(self.playersFrames[identity]) == 16:
                 inputFrames = inferenceShape(torch.Tensor(np.array(self.playersFrames[identity])))  # ADJUST SHAPE FOR INFERENCE
-                inputFrames = inputFrames.to(device=self.device)                             # SEND TO GPU
+                inputFrames = inputFrames.to(device=self.device)                                    # SEND TO GPU
 
                 with torch.no_grad():
-                    outputs = self.model(inputFrames)                    # INFERENCE
+                    outputs = self.model(inputFrames)                                               # INFERENCE
                     _, pred = torch.max(outputs, 1)
                     pred = pred.cpu().numpy()
-                    action = self.labels[pred[0]]                       # GET LABEL
-                    # TODO: CHANGE TO NUMPY ARRAY OF SIZE_OF_ACTION_QUEUE
+                    action = self.labels[pred[0]]                                                   # GET LABEL
+                    
                     self.playersPartialClassifications[identity].append(action)                     # APPEND TO QUEUE OF CLASSIFICATIONS
 
                     if len(self.playersPartialClassifications[identity]) > SIZE_OF_ACTION_QUEUE: 
@@ -152,14 +179,12 @@ class ActionRecognition:
                     if len(self.playersPartialClassifications[identity]) == SIZE_OF_ACTION_QUEUE:   # QUEUE OF 5 CLASSIFICATIONS
                         if len(set(self.playersPartialClassifications[identity])) == 1:
                             action = self.playersPartialClassifications[identity][0]
-                        #self.playersFinalClassifications[identity] = getMostCommonElement(self.playersPartialClassifications[identity]) # GET MOST COMMON CLASSIFICATION
-                        #hasAction = True
+                        
                     else:
                         action = "undefined"
 
                     self.playersFinalClassifications[identity] = action
 
         return self.playersFinalClassifications
-    
-    def getLabel(self, label):
-        return self.labels[label]
+   
+   

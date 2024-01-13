@@ -5,12 +5,27 @@ import copy
 
 # d^2 = (x2 - x1)^2 + (y2 - y1)^2
 def pixelInsideCircle(shape, x, y, c, r):
+    """
+    Returns true if the pixel is inside the circle
+    :param shape: shape of the image (tuple)
+    :param x: x coordinate of the pixel (int)
+    :param y: y coordinate of the pixel (int)
+    :param c: center of the circle (tuple)
+    :param r: radius of the circle (int)
+    :return: true if the pixel is inside the circle (bool)
+    """
     if x < 0 or x >= shape[1] or y < 0 or y >= shape[0]:
         return False
     
     return (x - c[0])**2 + (y - c[1])**2 <= r**2
 
 def generateHeatMap(tracks, topview):
+    """
+    Generates a heatmap from the tracks
+    :param tracks: tracks of the players (np.array)
+    :param topview: topview image (np.array)
+    :return: heatmap (np.array)
+    """
     blurred = cv2.GaussianBlur(tracks, (5, 5), 0)
     matrixNormalized = cv2.normalize(blurred, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
     heatmap = cv2.applyColorMap(matrixNormalized, cv2.COLORMAP_JET)
@@ -18,7 +33,12 @@ def generateHeatMap(tracks, topview):
     return heatmap
 
 def generateShotTrack(tracks, topview):
-    
+    """
+    Generates a shot track map from the tracks
+    :param tracks: tracks of the players (np.array)
+    :param topview: topview image (np.array)
+    :return: shot track (np.array)
+    """
     topviewCopy = copy.deepcopy(topview)
     # draw an x for each shot
     for y in range(tracks.shape[0]):
@@ -53,6 +73,12 @@ class StatisticsGenerator:
     
 
     def storeStep(self, pos, team):
+        """
+        Stores a step in the heatmap
+        :param pos: position of the player (tuple)
+        :param team: team of the player (int)
+        :return: None
+        """
         radius = 8
         for y in range(pos[1]-radius, pos[1]+radius):
             for x in range(pos[0]-radius, pos[0]+radius):
@@ -64,6 +90,14 @@ class StatisticsGenerator:
 
 
     def storeShot(self, pos, team, value, made):
+        """
+        Stores a shot in the heatmap
+        :param pos: position of the player (tuple)
+        :param team: team of the player (int)
+        :param value: value of the shot (int)
+        :param made: true if the shot has been made (bool)
+        :return: None
+        """
         if team == 0 or team == -1:
             if made:
                 self.shotTrackTeam1[pos[1]][pos[0]] = 1
@@ -103,19 +137,11 @@ class StatisticsGenerator:
                 
 
     
-    def printHeatmaps(self):
-        motionHeatmap1 = generateHeatMap(self.movementHeatmapTeam1, self.topview)
-        motionHeatmap2 = generateHeatMap(self.movementHeatmapTeam2, self.topview)
-        shotHeatmap1 = generateHeatMap(self.shotTrackTeam1, self.topview)
-        shotHeatmap2 = generateHeatMap(self.shotTrackTeam2, self.topview)
-
-        cv2.imshow("motion heatmap team 1", motionHeatmap1)
-        cv2.imshow("motion heatmap team 2", motionHeatmap2)
-        cv2.imshow("shot heatmap team 1", shotHeatmap1)
-        cv2.imshow("shot heatmap team 2", shotHeatmap2)
-        cv2.waitKey(0)
-    
     def getStatistics(self):
+        """
+        Returns the statistics
+        :return: statistics (dictionary)
+        """
         if self.nTeams == -1:
             print("ERROR: not number of teams setted")
             return None
@@ -159,4 +185,9 @@ class StatisticsGenerator:
 
 
     def setNTeams(self, nTeams):
+        """
+        Sets the number of teams
+        :param nTeams: number of teams (int)
+        :return: None
+        """
         self.nTeams = nTeams
