@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import torch
+import copy
 
 def resizeFrame(frame, height=1080):
     """
@@ -21,16 +22,47 @@ def getBorders(image):
     :param image: image to get borders from
     """
 
-    def clickEvent(event, x, y, flags, param):        
-        if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_LBUTTONUP:
-            param.append((x, y))
+    def clickEvent(event, x, y, flags, param):    
+        borders = param['borders']
+        mouse_pos = param['mouse_pos']
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            borders.append((x, y))
+            param['drawing']  = True
+
+        elif event == cv2.EVENT_LBUTTONUP:
+            borders.append((x, y))
+            param['drawing']  = False
+        
+        elif event == cv2.EVENT_MOUSEMOVE:
+            mouse_pos[0] = x
+            mouse_pos[1] = y
+            
+    
     
     borders = []
+    mouse_pos = [0, 0]
+    drawing = False 
+
+    params = {'borders': borders, 'drawing': drawing, 'mouse_pos': mouse_pos}
+
     cv2.namedWindow("borders")
-    cv2.setMouseCallback("borders", clickEvent, param=borders)
+    cv2.setMouseCallback("borders", clickEvent, param=params)
+
+    image_copy = copy.deepcopy(image)
+    tmp_draw = copy.deepcopy(image)
 
     while 1:
-        cv2.imshow("borders", image)
+        if len(borders) > 0 and len(borders) % 2 == 0:
+            cv2.line(tmp_draw, borders[-2], borders[-1], (0, 0, 255), 2)
+            image_copy = copy.deepcopy(tmp_draw)
+        
+        if params['drawing']:
+            tmp_draw = copy.deepcopy(image_copy)
+            if len(borders) > 0:
+                cv2.line(tmp_draw, borders[-1], (mouse_pos[0], mouse_pos[1]), (0, 0, 255), 2)
+
+        cv2.imshow("borders", tmp_draw)
         if len(borders) == 8:
             cv2.destroyAllWindows()
             break
@@ -52,15 +84,43 @@ def getRim(image):
     """
 
     def clickEvent(event, x, y, flags, param):
-        if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_LBUTTONUP:
-            param.append((x, y))
+        coords = param['coords']
+        mouse_pos = param['mouse_pos']
+
+        if event == cv2.EVENT_LBUTTONDOWN:
+            coords.append((x, y))
+            param['drawing']  = True
+
+        elif event == cv2.EVENT_LBUTTONUP:
+            coords.append((x, y))
+            param['drawing']  = False
+        
+        elif event == cv2.EVENT_MOUSEMOVE:
+            mouse_pos[0] = x
+            mouse_pos[1] = y
 
     coords = []
+    mouse_pos = [0, 0]
+    drawing = False 
+    params = {'coords': coords, 'drawing': drawing, 'mouse_pos': mouse_pos}
+
     cv2.namedWindow("rim coords")
-    cv2.setMouseCallback("rim coords", clickEvent, param=coords)
+    cv2.setMouseCallback("rim coords", clickEvent, param=params)
+
+    image_copy = copy.deepcopy(image)
+    tmp_draw = copy.deepcopy(image)
 
     while 1:
-        cv2.imshow("rim coords", image)
+        if len(coords) > 0 and len(coords) % 2 == 0:
+            cv2.line(tmp_draw, coords[-2], coords[-1], (0, 0, 255), 2)
+            image_copy = copy.deepcopy(tmp_draw)
+        
+        if params['drawing']:
+            tmp_draw = copy.deepcopy(image_copy)
+            if len(coords) > 0:
+                cv2.line(tmp_draw, coords[-1], (mouse_pos[0], mouse_pos[1]), (0, 0, 255), 2)
+
+        cv2.imshow("rim coords", tmp_draw)
         if len(coords) == 2:
             cv2.destroyAllWindows()
             break

@@ -13,7 +13,7 @@ import domainLayer.actionRecognition.actionRecognition as ar
 import domainLayer.utils as utils
 import matplotlib.pyplot as plt
 from domainLayer.statisticsGeneration.statisticsGeneration import StatisticsGenerator
-from persistenceLayer.database import storeStatistics, readTopviewPoints, readScenePoints
+from persistenceLayer.database import storeStatistics, readTopviewPoints, readScenePoints, sceneExists, gameExists
 import json
 from pathlib import Path
 from domainLayer.madeShotDetection.madeShotDetection import ShotMadeDetector
@@ -24,6 +24,13 @@ TOPVIEW_POINTS = "database/topview/topview_coords.json"
 SIZE_OF_ACTION_QUEUE = 10
 
 BLUE = (255, 0, 0)
+
+
+def sceneExists_(sceneName):
+    return sceneExists(sceneName)
+
+def gameExists_(gameName):
+    return gameExists(gameName)
 
 
 def executeStatisticsGeneration_noImshow(videoPath, team1path, team2path):
@@ -142,6 +149,7 @@ def executeStatisticsGeneration(args):
 
     lastPlayerWithBall = None                                           # ID OF THE LAST PLAYER WHO HAS HAD THE BALL
     playerWhoShot = None                                                # ID OF THE PLAYER WHO HAS SHOT THE BALL
+    teamPlayerWhoShot = None                                            # TEAM OF THE PLAYER WHO HAS SHOT THE BALL
     posOfShot = None                                                    # POSITION OF THE SHOT IN THE TOPVIEW                
     shotEnded = False                                                   # BOOLEAN TO KNOW IF THE SHOT HAS ENDED (TRUE ONLY IN ONE FRAME WHEN THE MADE SHOT DETECTION HAS ENDED)
 
@@ -174,6 +182,7 @@ def executeStatisticsGeneration(args):
             playerWithBall = utils.whoHasPossession(zip(ids, boxes), ballSize)
             if (playerWithBall != playerWhoShot) and not processingShot:
                 playerWhoShot = None
+                teamPlayerWhoShot = None
                 posOfShot = None
                 shotEnded = False
 
@@ -203,7 +212,7 @@ def executeStatisticsGeneration(args):
         # if the shot has been processed, and the shot has ended, and someone has shot, then analyze and store the shot
         if processingShot and shotEnded and playerWhoShot is not None:
             shotValue = actionAnalyzer.shotDetected(posOfShot)
-            statisticsGenerator.storeShot(posOfShot, association, shotValue, made)
+            statisticsGenerator.storeShot(posOfShot, teamPlayerWhoShot, shotValue, made)
 
             if made:
                 cv2.circle(topviewImg, (int(posOfShot[0]), int(posOfShot[1])), 3, (0, 121, 4), 2)
@@ -213,6 +222,7 @@ def executeStatisticsGeneration(args):
                 cv2.line(topviewImg, (int(posOfShot[0])+5, int(posOfShot[1])-5), (int(posOfShot[0])-5, int(posOfShot[1])+5), (0, 0, 255), 2)
 
             playerWhoShot = None
+            teamPlayerWhoShot = None
             posOfShot = None
             processingShot = False
             shotEnded = False
@@ -241,6 +251,7 @@ def executeStatisticsGeneration(args):
 
             if actions[identity] == "shoot" and lastPlayerWithBall == identity and playerWhoShot is None:   # DETECT IF PLAYER HAS SHOT
                 playerWhoShot = identity    
+                teamPlayerWhoShot = association
                 posOfShot = (int(floorPointTransformed[0]), int(floorPointTransformed[1]))
                 shotEnded = False
                 #shotValue = actionAnalyzer.shotDetected(posOfShot)
@@ -272,12 +283,16 @@ def executeStatisticsGeneration(args):
     statisticsDict["scenePoints"] = None        # None if scene already exists, else create new scene with scenePoints
     statisticsDict["courtSide"] = None
     statisticsDict["rimPoints"] = None
+    statisticsDict["sceneName"] = None
+    statisticsDict["gameName"] = None
 
     if args.get("scenePointsPath") is None:
         statisticsDict["firstFrame"] = firstFrame
         statisticsDict["scenePoints"] = twTransform.getSceneIntersections().tolist()
         statisticsDict["courtSide"] = args.get("courtSide")
         statisticsDict["rimPoints"] = rimPoints.tolist()
+        statisticsDict["sceneName"] = args.get("sceneName")
+        statisticsDict["gameName"] = args.get("gameName")
 
     storeStatistics(statisticsDict)
 

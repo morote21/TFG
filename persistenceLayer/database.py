@@ -7,6 +7,44 @@ import numpy as np
 TOPVIEW_POINTS = "database/topview/topview_coords.json"
 
 
+def gameExists(gameName):
+    """
+    Checks if the game already exists
+    :param gameName: name of the game (string)
+    :return: True if game already exists, False if not (bool)
+    """
+    databasePath = Path("./database")
+    pathForGames = databasePath / "games"
+    
+    if gameName is not None:
+        if not os.path.exists(pathForGames / gameName):
+            return False
+    else:
+        if not os.path.exists(pathForGames / "game0"):
+            return False
+
+    return True
+
+
+def sceneExists(sceneName):
+    """
+    Checks if the scene already exists
+    :param sceneName: name of the scene (string)
+    :return: True if scene already exists, False if not (bool)
+    """
+    databasePath = Path("./database")    
+    pathForScenes = databasePath / "scenes"
+    
+    if sceneName is not None:
+        if not os.path.exists(pathForScenes / sceneName):
+            return False
+    else:
+        if not os.path.exists(pathForScenes / "scene0"):
+            return False
+
+    return True
+
+
 def storeStatistics(statisticsDict):
     """
     Stores the statistics in the database
@@ -17,6 +55,7 @@ def storeStatistics(statisticsDict):
 
     firstFrame = statisticsDict["firstFrame"]
     scenePoints = statisticsDict["scenePoints"]
+    sceneName = statisticsDict["sceneName"]
 
 
     databasePath = Path("./database")
@@ -62,29 +101,45 @@ def storeStatistics(statisticsDict):
         }
 
         # get number of files in pathForScenes
-        sceneNumber = len(os.listdir(pathForScenes))
-        sceneNumber = int(sceneNumber)
+        sceneNumber = int(len(os.listdir(pathForScenes)))
 
         if sceneNumber == 0:
-            os.mkdir(pathForScenes / "scene0")
-            jsonScenePoints = json.dumps(scenePointsDict, indent=4)
-            with open(pathForScenes / "scene0/scenePoints.json", "w") as f:
-                f.write(jsonScenePoints)
+            if sceneName is not None:
+                os.mkdir(pathForScenes / sceneName)
+                jsonScenePoints = json.dumps(scenePointsDict, indent=4)
+                with open(pathForScenes / f"{sceneName}/scenePoints.json", "w") as f:
+                    f.write(jsonScenePoints)
 
-            cv2.imwrite(str(pathForScenes / "scene0/firstFrame.png"), firstFrame)
+                cv2.imwrite(str(pathForScenes / f"{sceneName}/firstFrame.png"), firstFrame)
+            else:
+                os.mkdir(pathForScenes / "scene0")
+                jsonScenePoints = json.dumps(scenePointsDict, indent=4)
+                with open(pathForScenes / "scene0/scenePoints.json", "w") as f:
+                    f.write(jsonScenePoints)
+
+                cv2.imwrite(str(pathForScenes / "scene0/firstFrame.png"), firstFrame)
             
 
         else:
-            for i in range(1, sceneNumber+1, 1):
-                if not os.path.exists(pathForScenes / f"scene{i}"): # if scene{i} does not exist, create it and store first frame and scenePoints
-                    os.mkdir(pathForScenes / f"scene{i}")
+            if sceneName is not None:
+                os.mkdir(pathForScenes / sceneName)
+                jsonScenePoints = json.dumps(scenePointsDict, indent=4)
+                with open(pathForScenes / f"{sceneName}/scenePoints.json", "w") as f:
+                    f.write(jsonScenePoints)
 
-                    jsonScenePoints = json.dumps(scenePointsDict, indent=4)
-                    with open(pathForScenes / f"scene{i}/scenePoints.json", "w") as f:
-                        f.write(jsonScenePoints)
+                cv2.imwrite(str(pathForScenes / f"{sceneName}/firstFrame.png"), firstFrame)
+                
+            else:
+                for i in range(1, sceneNumber+1, 1):
+                    if not os.path.exists(pathForScenes / f"scene{i}"): # if scene{i} does not exist, create it and store first frame and scenePoints
+                        os.mkdir(pathForScenes / f"scene{i}")
 
-                    cv2.imwrite(str(pathForScenes / f"scene{i}/firstFrame.png"), firstFrame)
-                    break
+                        jsonScenePoints = json.dumps(scenePointsDict, indent=4)
+                        with open(pathForScenes / f"scene{i}/scenePoints.json", "w") as f:
+                            f.write(jsonScenePoints)
+
+                        cv2.imwrite(str(pathForScenes / f"scene{i}/firstFrame.png"), firstFrame)
+                        break
             
     # check if there is attribute "Team2" in statisticsDict
     if "Team2" in statisticsDict:
@@ -122,40 +177,57 @@ def storeStatistics(statisticsDict):
     # get number of files in pathForStatistics
     gameNumber = len(os.listdir(pathForStatistics))
     gameNumber = int(gameNumber)
+    gameName = statisticsDict["gameName"]
 
-    if gameNumber == 0:
-        os.mkdir(pathForStatistics / "game0")
-        jsonStatistics = json.dumps(numericalStatistics, indent=4)
-        with open(pathForStatistics / "game0/statistics.json", "w") as f:
-            f.write(jsonStatistics)
-        # Store heatmaps and shot track
-        cv2.imwrite(str(pathForStatistics / "game0/Team1MotionHeatmap.png"), statisticsDict["Team1"]["MotionHeatmap"])
-        cv2.imwrite(str(pathForStatistics / "game0/Team1ShotHeatmap.png"), statisticsDict["Team1"]["ShotHeatmap"])
-        cv2.imwrite(str(pathForStatistics / "game0/Team1ShotTrack.png"), statisticsDict["Team1"]["ShotTrack"])
-        
-        if "Team2" in statisticsDict:
-            cv2.imwrite(str(pathForStatistics / "game0/Team2MotionHeatmap.png"), statisticsDict["Team2"]["MotionHeatmap"])
-            cv2.imwrite(str(pathForStatistics / "game0/Team2ShotHeatmap.png"), statisticsDict["Team2"]["ShotHeatmap"])
-            cv2.imwrite(str(pathForStatistics / "game0/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
-
+    if gameName is not None:
+            os.mkdir(pathForStatistics / gameName)
+            jsonStatistics = json.dumps(numericalStatistics, indent=4)
+            with open(pathForStatistics / f"{gameName}/statistics.json", "w") as f:
+                f.write(jsonStatistics)
+            # Store heatmaps and shot track
+            cv2.imwrite(str(pathForStatistics / f"{gameName}/Team1MotionHeatmap.png"), statisticsDict["Team1"]["MotionHeatmap"])
+            cv2.imwrite(str(pathForStatistics / f"{gameName}/Team1ShotHeatmap.png"), statisticsDict["Team1"]["ShotHeatmap"])
+            cv2.imwrite(str(pathForStatistics / f"{gameName}/Team1ShotTrack.png"), statisticsDict["Team1"]["ShotTrack"])
+            
+            if "Team2" in statisticsDict:
+                cv2.imwrite(str(pathForStatistics / f"{gameName}/Team2MotionHeatmap.png"), statisticsDict["Team2"]["MotionHeatmap"])
+                cv2.imwrite(str(pathForStatistics / f"{gameName}/Team2ShotHeatmap.png"), statisticsDict["Team2"]["ShotHeatmap"])
+                cv2.imwrite(str(pathForStatistics / f"{gameName}/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
+    
     else:
-        for i in range(1, gameNumber + 1, 1):
-            if not os.path.exists(pathForStatistics / f"game{i}"):
-                os.mkdir(pathForStatistics / f"game{i}")
-                jsonStatistics = json.dumps(numericalStatistics, indent=4)
-                with open(pathForStatistics / f"game{i}/statistics.json", "w") as f:
-                    f.write(jsonStatistics)
-                # Store heatmaps and shot track
-                cv2.imwrite(str(pathForStatistics / f"game{i}/Team1MotionHeatmap.png"), statisticsDict["Team1"]["MotionHeatmap"])
-                cv2.imwrite(str(pathForStatistics / f"game{i}/Team1ShotHeatmap.png"), statisticsDict["Team1"]["ShotHeatmap"])
-                cv2.imwrite(str(pathForStatistics / f"game{i}/Team1ShotTrack.png"), statisticsDict["Team1"]["ShotTrack"])
-                
-                if "Team2" in statisticsDict:
-                    cv2.imwrite(str(pathForStatistics / f"game{i}/Team2MotionHeatmap.png"), statisticsDict["Team2"]["MotionHeatmap"])
-                    cv2.imwrite(str(pathForStatistics / f"game{i}/Team2ShotHeatmap.png"), statisticsDict["Team2"]["ShotHeatmap"])
-                    cv2.imwrite(str(pathForStatistics / f"game{i}/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
+        if gameNumber == 0:
+            os.mkdir(pathForStatistics / "game0")
+            jsonStatistics = json.dumps(numericalStatistics, indent=4)
+            with open(pathForStatistics / "game0/statistics.json", "w") as f:
+                f.write(jsonStatistics)
+            # Store heatmaps and shot track
+            cv2.imwrite(str(pathForStatistics / "game0/Team1MotionHeatmap.png"), statisticsDict["Team1"]["MotionHeatmap"])
+            cv2.imwrite(str(pathForStatistics / "game0/Team1ShotHeatmap.png"), statisticsDict["Team1"]["ShotHeatmap"])
+            cv2.imwrite(str(pathForStatistics / "game0/Team1ShotTrack.png"), statisticsDict["Team1"]["ShotTrack"])
+            
+            if "Team2" in statisticsDict:
+                cv2.imwrite(str(pathForStatistics / "game0/Team2MotionHeatmap.png"), statisticsDict["Team2"]["MotionHeatmap"])
+                cv2.imwrite(str(pathForStatistics / "game0/Team2ShotHeatmap.png"), statisticsDict["Team2"]["ShotHeatmap"])
+                cv2.imwrite(str(pathForStatistics / "game0/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
 
-                break
+        else:
+            for i in range(1, gameNumber + 1, 1):
+                if not os.path.exists(pathForStatistics / f"game{i}"):
+                    os.mkdir(pathForStatistics / f"game{i}")
+                    jsonStatistics = json.dumps(numericalStatistics, indent=4)
+                    with open(pathForStatistics / f"game{i}/statistics.json", "w") as f:
+                        f.write(jsonStatistics)
+                    # Store heatmaps and shot track
+                    cv2.imwrite(str(pathForStatistics / f"game{i}/Team1MotionHeatmap.png"), statisticsDict["Team1"]["MotionHeatmap"])
+                    cv2.imwrite(str(pathForStatistics / f"game{i}/Team1ShotHeatmap.png"), statisticsDict["Team1"]["ShotHeatmap"])
+                    cv2.imwrite(str(pathForStatistics / f"game{i}/Team1ShotTrack.png"), statisticsDict["Team1"]["ShotTrack"])
+                    
+                    if "Team2" in statisticsDict:
+                        cv2.imwrite(str(pathForStatistics / f"game{i}/Team2MotionHeatmap.png"), statisticsDict["Team2"]["MotionHeatmap"])
+                        cv2.imwrite(str(pathForStatistics / f"game{i}/Team2ShotHeatmap.png"), statisticsDict["Team2"]["ShotHeatmap"])
+                        cv2.imwrite(str(pathForStatistics / f"game{i}/Team2ShotTrack.png"), statisticsDict["Team2"]["ShotTrack"])
+
+                    break
     
     
     print("Statistics stored!")

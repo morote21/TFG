@@ -12,7 +12,7 @@ from domainLayer.utils import load_weights, getMostCommonElement
 MODEL_PATH = "/home/morote/Desktop/TFG/domainLayer/models/model_checkpoints/r2plus1d_augmented-3/r2plus1d_multiclass_12_0.0001.pt"
 SIZE_OF_ACTION_QUEUE = 5
 
-VIDEO_FPS = 60
+VIDEO_FPS = 30
 
 def updateIds(dictFrames, dictPlayersFrameFlag, dictPartialClassifications, dictFinalClassifications, ids):
     """

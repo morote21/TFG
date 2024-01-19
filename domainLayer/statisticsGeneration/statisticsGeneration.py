@@ -85,7 +85,7 @@ class StatisticsGenerator:
                 if pixelInsideCircle(self.topview.shape, x, y, pos, radius):
                     if team == 0 or team == -1:
                         self.movementHeatmapTeam1[y][x] += 5
-                    else:
+                    elif team == 1:
                         self.movementHeatmapTeam2[y][x] += 5
 
 
@@ -117,7 +117,7 @@ class StatisticsGenerator:
                     self.FGMteam1 += 1
                 
                 
-        else:
+        elif team == 1:
             if made:
                 self.shotTrackTeam2[pos[1]][pos[0]] = 1
             else:

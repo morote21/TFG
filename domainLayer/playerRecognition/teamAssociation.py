@@ -77,70 +77,59 @@ class Teams:
         player = copy.deepcopy(image)
         results = self.model.predict(player)
         keypoints = results[0].keypoints.xy.cpu().numpy()[0]
-        ls = keypoints[5]   # left shoulder
-        rs = keypoints[6]   # right shoulder
-        lh = keypoints[11]  # left hip
-        rh = keypoints[12]  # right hip
 
-        # crop image by left-most shoulder and right-most hip
-        ls_x = int(ls[0])
-        rs_x = int(rs[0])
-        lh_x = int(lh[0])
-        rh_x = int(rh[0])
-
-        ls_y = int(ls[1])
-        rh_y = int(rh[1])
-
-        if ls_x < rs_x:
-            left_torax = ls_x
-        else:
-            left_torax = rs_x
-
-        if lh_x > rh_x:
-            right_hip = lh_x
-            right_torax = lh_x
-            left_hip = rh_x
-        else:
-            right_torax = rh_x
-            right_hip = rh_x
-            left_hip = lh_x
+        # if no keypoints detected, return None
+        if len(keypoints) == 0:
+            return None, None
         
-        # crop image by 25% above and 40% below
-        height = player.shape[0]
-        width = player.shape[1]
+        else:
+            ls = keypoints[5]   # left shoulder
+            rs = keypoints[6]   # right shoulder
+            lh = keypoints[11]  # left hip
+            rh = keypoints[12]  # right hip
+
+            # crop image by left-most shoulder and right-most hip
+            ls_x = int(ls[0])
+            rs_x = int(rs[0])
+            lh_x = int(lh[0])
+            rh_x = int(rh[0])
+
+            ls_y = int(ls[1])
+            rh_y = int(rh[1])
+
+            if ls_x < rs_x:
+                left_torax = ls_x
+                right_torax = rs_x
+            else:
+                left_torax = rs_x
+                right_torax = ls_x
+
+            if lh_x > rh_x:
+                right_hip = lh_x
+                #right_torax = lh_x
+                left_hip = rh_x
+            else:
+                #right_torax = rh_x
+                right_hip = rh_x
+                left_hip = lh_x
+
+            if left_hip < left_torax:
+                    left_torax = left_hip
+                
+            if right_hip > right_torax:
+                right_torax = right_hip
+            
+            height = player.shape[0]
+            width = player.shape[1]
 
 
-        roiTorax = image[ls_y:rh_y, left_torax:right_torax]
+            roiTorax = image[ls_y:rh_y, left_torax:right_torax]
 
-        roiHip = image[int(rh_y - height*0.10):int(rh_y + height*0.10), int(left_hip - width*0.10):int(right_hip + width*0.10)]
+            #roiHip = image[int(rh_y - height*0.10):int(rh_y + height*0.10), int(left_hip - width*0.10):int(right_hip + width*0.10)]
+            roiHip = image[int(rh_y - height*0.05):int(rh_y + height*0.05), int(left_hip - width*0.1):int(right_hip + width*0.1)]
 
-        return roiTorax, roiHip
+            return roiTorax, roiHip
     
-        
-
-    def get2PlayersWithHighestBGRDistance(self, all_test_images):
-        """
-        Gets the players with the highest RGB distance
-        :param all_test_images: list of images of the players
-        :return: the 2 players with the highest RGB distance between them
-        """
-        
-        maxDistance = 0
-        player1 = None
-        player2 = None
-
-        for i in range(len(all_test_images)):
-            for j in range(i + 1, len(all_test_images)):
-                player1Means = getMeanOfEachColorChannel(self.getRoiOfPlayer2(all_test_images[i]))
-                player2Means = getMeanOfEachColorChannel(self.getRoiOfPlayer2(all_test_images[j]))
-                distance = getDistance(player1Means, player2Means)
-                if distance > maxDistance:
-                    maxDistance = distance
-                    player1 = player1Means
-                    player2 = player2Means
-
-        return player1, player2
-
 
     def associate(self, player):
         """
@@ -148,17 +137,24 @@ class Teams:
         :param player: player to associate (np.array)
         :return: team of the player (int)
         """
-        distancePlayerToC1Torax = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer(player)[0]), self.team1Torax)
-        distancePlayerToC2Torax = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer(player)[0]), self.team2Torax)
+        roiTorax = self.getRoiOfPlayer(player)[0]
+        roiHip = self.getRoiOfPlayer(player)[1]
+        if roiTorax is not None and roiHip is not None:
+            distancePlayerToC1Torax = getDistance(getMeanOfEachColorChannel(roiTorax), self.team1Torax)
+            distancePlayerToC2Torax = getDistance(getMeanOfEachColorChannel(roiTorax), self.team2Torax)
 
-        distancePlayerToC1Hip = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer(player)[1]), self.team1Hip)
-        distancePlayerToC2Hip = getDistance(getMeanOfEachColorChannel(self.getRoiOfPlayer(player)[1]), self.team2Hip)
+            distancePlayerToC1Hip = getDistance(getMeanOfEachColorChannel(roiHip), self.team1Hip)
+            distancePlayerToC2Hip = getDistance(getMeanOfEachColorChannel(roiHip), self.team2Hip)
 
-        distToC1 = min(distancePlayerToC1Torax, distancePlayerToC1Hip)
-        distToC2 = min(distancePlayerToC2Torax, distancePlayerToC2Hip)
+            distToC1 = min(distancePlayerToC1Torax, distancePlayerToC1Hip)
+            distToC2 = min(distancePlayerToC2Torax, distancePlayerToC2Hip)
 
-        if distToC1 < distToC2:
-            return 0
+            if distToC1 < distToC2:
+                return 0
+            else:
+                return 1
+        
         else:
-            return 1
+            # -2 ROI NOT DETECTED FOR PLAYERs
+            return -2
 

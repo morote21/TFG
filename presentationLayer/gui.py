@@ -5,7 +5,7 @@ from PyQt6.QtGui import QPixmap, QIcon
 import PyQt6.QtWidgets
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QListWidget, QListWidgetItem, QScrollArea, QSizePolicy
 import sys
-from domainLayer.main import executeStatisticsGeneration
+from domainLayer.main import executeStatisticsGeneration, sceneExists_, gameExists_
 from pathlib import Path
 import json
 
@@ -286,6 +286,20 @@ class MainWindow(QMainWindow):
             self.newSceneInsertButton.setEnabled(False)
             self.existentSceneInsertButton.setEnabled(False)
             self.videoInsertButton.setEnabled(False)
+
+            # dialog to enter a name for the scene
+            sceneExists = False
+            while not sceneExists:
+                sceneName, ok = PyQt6.QtWidgets.QInputDialog.getText(self, "Scene Name", "Enter scene name:")
+                if sceneExists_(sceneName):
+                    QMessageBox.warning(self, "Scene name already exists", "Scene name already exists, enter another scene name.")
+                else:
+                    sceneExists = True
+                    if ok:
+                        self.argsDict["sceneName"] = sceneName
+                        self.sceneSetted = True
+                    else:
+                        print("No scene name entered")
             
         else:
             print("No video selected")
@@ -323,8 +337,22 @@ class MainWindow(QMainWindow):
             print("No team 2 selected")
     
     def generateStatistics(self):
-        print("Generating statistics...")
-        executeStatisticsGeneration(self.argsDict)
+        # dialog to enter a name for the game
+        nameExists = False
+        while not nameExists:
+            gameName, ok = PyQt6.QtWidgets.QInputDialog.getText(self, "Game Name", "Enter game name:")
+            if gameExists_(gameName):
+                QMessageBox.warning(self, "Game name already exists", "Game name already exists, enter another game name.")
+            else:
+                nameExists = True
+                if ok:
+                    self.argsDict["gameName"] = gameName
+                    print("Generating statistics...")
+                    executeStatisticsGeneration(self.argsDict)
+
+        else:
+            print("No game name entered")
+            
 
     def resetParameters(self):
         self.sceneSetted = False
@@ -338,7 +366,8 @@ class MainWindow(QMainWindow):
             "team1Path": None,
             "team2Path": None,
             "courtSide": None,
-            "scenePointsPath": None
+            "scenePointsPath": None,
+            "sceneName": None
         }
 
         self.rightSideButton.setEnabled(True)
