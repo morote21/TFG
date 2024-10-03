@@ -10,7 +10,7 @@ from torchvision.models.video import R2Plus1D_18_Weights
 from domainLayer.utils import load_weights, getMostCommonElement
 
 MODEL_PATH = "/home/morote/Desktop/TFG/domainLayer/models/model_checkpoints/r2plus1d_augmented-3/r2plus1d_multiclass_12_0.0001.pt"
-SIZE_OF_ACTION_QUEUE = 5
+SIZE_OF_ACTION_QUEUE = 6
 
 VIDEO_FPS = 30
 
@@ -178,12 +178,12 @@ class ActionRecognition:
 
                     if len(self.playersPartialClassifications[identity]) == SIZE_OF_ACTION_QUEUE:   # QUEUE OF 5 CLASSIFICATIONS
                         if len(set(self.playersPartialClassifications[identity])) == 1:
-                            action = self.playersPartialClassifications[identity][0]
+                            self.playersFinalClassifications[identity] = self.playersPartialClassifications[identity][0]
                         
                     else:
                         action = "undefined"
 
-                    self.playersFinalClassifications[identity] = action
+                    #self.playersFinalClassifications[identity] = action
 
         return self.playersFinalClassifications
    

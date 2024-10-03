@@ -350,7 +350,7 @@ class MainWindow(QMainWindow):
                     print("Generating statistics...")
                     executeStatisticsGeneration(self.argsDict)
 
-        else:
+        if not nameExists:
             print("No game name entered")
             
 

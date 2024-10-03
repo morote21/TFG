@@ -284,7 +284,6 @@ def executeStatisticsGeneration(args):
     statisticsDict["courtSide"] = None
     statisticsDict["rimPoints"] = None
     statisticsDict["sceneName"] = None
-    statisticsDict["gameName"] = None
 
     if args.get("scenePointsPath") is None:
         statisticsDict["firstFrame"] = firstFrame
@@ -292,7 +291,8 @@ def executeStatisticsGeneration(args):
         statisticsDict["courtSide"] = args.get("courtSide")
         statisticsDict["rimPoints"] = rimPoints.tolist()
         statisticsDict["sceneName"] = args.get("sceneName")
-        statisticsDict["gameName"] = args.get("gameName")
+        
+    statisticsDict["gameName"] = args.get("gameName")
 
     storeStatistics(statisticsDict)
 
